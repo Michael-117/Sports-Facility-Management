@@ -4,9 +4,6 @@ Jinja2 Documentation:    http://jinja.pocoo.org/2/documentation/
 Werkzeug Documentation:  http://werkzeug.pocoo.org/documentation/
 This file creates your application.
 """
-from app import app
-from app import db
-from app.models import User
 from flask import Flask
 from flask import session,render_template, request, redirect, url_for, flash
 from flask_wtf import FlaskForm
@@ -20,7 +17,13 @@ import threading
 from werkzeug.security import check_password_hash
 
 
- 
+app= Flask(__name__)
+app.config['DEBUG'] = True
+"""app.config['SQLALCHEMY_DATABASE_URI']='mysql://password@localhost/mydatabases'"""
+app.config['SQLALCHEMY_DATABASE_URI']='mysqldb://password@localhost/mydatabases'
+SQLALCHEMY_TRACK_MODIFICATIONS = True
+db= SQLAlchemy(app)
+app.secret_key = '1234' 
 
 
 ###

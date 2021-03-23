@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block main %}
+<h1 class="section-title">Booking</h1>
+<div class="events-container"></div>
+</section>
+<section id="add-event">
+<h1 class="section-title">New Booking</h1>
+<form class="form">
+    <input type="text" id="name" placeholder="Name">
+    <input type="number" id="attendee" placeholder="Attendees">
+
+    <select id="status">
+      <option value="0">March 18,2021</option>
+      <option value="1">March 19,2021</option>
+    </select>
+    <select id="status">
+      <option value="0">9:00 am</option>
+      <option value="1">10:00 am</option>
+      <option value="2">11:00 am</option>
+      <option value="3">12:00 am</option>
+    </select>
+
+    <select id="status">
+        <option value="0">Football Field</option>
+        <option value="1">Swimming Pool</option>
+    </select>
+    <button class="btn btn-primary">Place Booking</button>
+  
+{% endblock %}

@@ -78,6 +78,8 @@ def login():
     	        #Create Session
                 session['user_ID'] = result[0][1]
                 users.append(User(result[0][1], username, result[0][2]))
+                cur.close()
+                conn.close()
 
                 #Redirect to profile page
                 return redirect('/SFMS/profile')
@@ -89,8 +91,37 @@ def login():
     return render_template('login.html', error = error)
 
 #Booking Page
-@app.route('/booking')
+@app.route('/booking', methods=['post', 'get'])
 def booking():
+    if not g.user:
+        return redirect('/SFMS/login')
+
+    #Retrieve POST Request Data
+    if (request.method == 'POST'):
+        facility = request.form.get('facility')
+        resource = request.form.get('resource')
+        date = request.form.get('date')
+        startTime = request.form.get('startTime')
+        endTime = request.form.get('endTime')
+
+        try:
+            #Connect to DB
+            conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
+            cur = conn.cursor()
+
+	    #Create SQL Query
+            sql = "INSERT INTO Booking (facility, resource, useStart, useEnd, useDate, userID) VALUES (%s, %s, %s, %s, %s, %s)"
+            sqlVar = (facility, resource, startTime, endTime, date, g.user.id )
+
+	    #Run SQL Query
+            cur.execute(sql, sqlVar)
+            conn.commit()
+            cur.close()
+            conn.close()
+
+        except mariadb.Error as e:
+            print(f"Error: {e}")
+
     return render_template('booking.html')
 
 #Profile Page

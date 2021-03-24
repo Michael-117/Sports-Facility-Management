@@ -3,9 +3,9 @@
 {% block main %}
 
     <form action="" method="POST">
+        
         <div class="imgcontainer">
-            <img src={{ url_for('static', filename='css/login.png') }} alt="login" class="avatar">
-
+            <img src="{{ url_for('static', filename='css/login.png') }}" alt="login" class="avatar">
         </div>
         <p>
             <label for="username">Username</label>

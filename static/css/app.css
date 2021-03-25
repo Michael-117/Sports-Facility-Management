@@ -9,6 +9,8 @@
   .login{
     width: 80%;
     margin: 5% auto 15% auto;
+    background-color: #ccc;
+    
   }
   /*header*/
 .header{
@@ -89,16 +91,16 @@ nav{
 }
 form {border: 3px solid #f1f1f1;}
 
-input[type=text],input[type=number],select, input[type=password] {
-  width: 100%;
+label,input[type=text],input[type=number],select, input[type=password] {
+  width: 80%;
   padding: 12px 20px;
-  margin: 8px 0;
+  margin:0 100px;
   display: inline-block;
   border: 1px solid #ccc;
   box-sizing: border-box;
 }
 
-button {
+button,input[type=submit]{
   background-color: #096bc7;
   color: white;
   padding: 14px 20px;

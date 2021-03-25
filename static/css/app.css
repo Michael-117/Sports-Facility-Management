@@ -5,6 +5,11 @@
     font-family: Arial, Helvetica, sans-serif;
     margin: 0;
   }
+  /*login*/
+  .login{
+    width: 80%;
+    margin: 5% auto 15% auto;
+  }
   /*header*/
 .header{
     padding: 80px;

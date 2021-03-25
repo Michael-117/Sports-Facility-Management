@@ -2,12 +2,13 @@ from flask import Flask, flash, render_template, request, session, redirect, g
 from flask_wtf import FlaskForm
 from wtforms import StringField,Form,TextField,TextAreaField, validators,SubmitField
 from wtforms.validators import InputRequired
+import datetime
 import hashlib
 import mysql.connector as mariadb
 import schedule
-import time
 import threading
 import os
+
 
 #User Class for global variable
 class User:
@@ -148,10 +149,62 @@ def header():
 def footer():
     return render_template('footer.html')
 
-#Error Pafe
+#Error Page
 @app.route('/errorpage')
 def errorpage():
     return render_template('404.html')
+
+#Verify Nooking
+@app.route('/verify', methods=['post', 'get'])
+def verifyBooking():
+
+    message = ""
+    today = datetime.date.today().strftime("%Y-%m-%d")
+    now = datetime.datetime.today().time()
+
+    if (request.method == 'POST'):
+        name = request.form.get('sensor')
+        facility = request.form.get('facility')
+        rfid = request.form.get('rfid')
+
+        try:
+	    #Connect to DB
+            conn = mariadb.connect(user="esp32", password="esp_boss5", host="localhost", database="SFM")
+            cur = conn.cursor()
+
+	    #Create SQL Query to log a facility access attempt
+            sql = "INSERT INTO SensorData (sensor, location, rfid) VALUES (%s, %s, %s)"
+            sqlVar = (name, facility, rfid)
+
+	    #Run SQL Query
+            cur.execute(sql, sqlVar)
+            conn.commit()
+
+            #Create SQL Query to check for a booking
+            sql = "SELECT facility, resource, useStart, useEnd FROM Booking WHERE userID = (SELECT userID FROM Member WHERE cardID = %s) AND useDate = %s"
+            sqlVar = (rfid, today)
+
+            #Run SQL Query
+            cur.execute(sql, sqlVar)
+            result = cur.fetchall()
+
+            cur.close()
+            conn.close()
+
+            if not result:
+                message = "False"
+                return message, 200
+
+            start = datetime.datetime.strptime(result[0][2], '%H:%M:%S').time()
+            end = datetime.datetime.strptime(result[0][3], '%H:%M:%S').time()
+
+            if (start <= now) and (now <= end):
+                message = "True"
+            else:
+                message = "False"
+        except mariadb.Error as e:
+            print(f"Error: {e}")
+    return message, 200
 
 #Run Server
 if __name__ == "__main__":

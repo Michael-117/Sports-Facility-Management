@@ -9,6 +9,15 @@ import schedule
 import threading
 import os
 
+def timeLeft(nowTime: str, endTime: str):
+    nowVals = nowTime.split(":")
+    endVals = endTime.split(":")
+    hrsDiff = int(endVals[0]) - int(nowVals[0])
+    minsDiff = int(endVals[1]) - int(nowVals[1]) + 10
+    secDiff = int(endVals[2]) - int(nowVals[2])
+
+    secsLeft = (hrsDiff*3600) + (minsDiff*60) + (secDiff)
+    return secsLeft
 
 #User Class for global variable
 class User:
@@ -43,7 +52,7 @@ def home():
 #Login Page
 @app.route('/login', methods=['post', 'get'])
 def login():
-    error = None
+    error = ""
     if(request.method=='POST'):
 
 	#Remove session
@@ -62,7 +71,7 @@ def login():
             cur = conn.cursor()
 
 	    #Create SQL Query
-            sql = "SELECT sesame, userID, first_name FROM SFMSUser WHERE username = %s"
+            sql = "SELECT sesame, userID, firstName FROM SFMSUser WHERE username = %s"
             sqlVar = (username, )
 
 	    #Run SQL Query and retrieve records
@@ -70,8 +79,9 @@ def login():
             result = cur.fetchall()
 
             if not result:
-                error = "Invalid Username"
-                return render_template('login.html', error = error)
+                error1 = "Invalid Username"
+                flash(error1, "success")
+                return render_template('login.html')
 
 	    #Test for password match
             if result[0][0] == entryPasswordHash:
@@ -89,13 +99,15 @@ def login():
         except mariadb.Error as e:
             print(f"Error: {e}")
 
-    return render_template('login.html', error = error)
+    flash(error, "success")
+    return render_template('login.html')
 
 #Booking Page
 @app.route('/booking', methods=['post', 'get'])
 def booking():
     if not g.user:
         return redirect('/SFMS/login')
+    message = ""
 
     #Retrieve POST Request Data
     if (request.method == 'POST'):
@@ -122,7 +134,8 @@ def booking():
 
         except mariadb.Error as e:
             print(f"Error: {e}")
-
+    message = "Booking Created Successfully"
+    flash(message, "success")
     return render_template('booking.html')
 
 #Profile Page
@@ -154,7 +167,7 @@ def footer():
 def errorpage():
     return render_template('404.html')
 
-#Verify Nooking
+#Verify Booking
 @app.route('/verify', methods=['post', 'get'])
 def verifyBooking():
 
@@ -173,7 +186,7 @@ def verifyBooking():
             cur = conn.cursor()
 
 	    #Create SQL Query to log a facility access attempt
-            sql = "INSERT INTO SensorData (sensor, location, rfid) VALUES (%s, %s, %s)"
+            sql = "INSERT INTO SensorData (sensor, facility, rfid) VALUES (%s, %s, %s)"
             sqlVar = (name, facility, rfid)
 
 	    #Run SQL Query
@@ -181,8 +194,8 @@ def verifyBooking():
             conn.commit()
 
             #Create SQL Query to check for a booking
-            sql = "SELECT facility, resource, useStart, useEnd FROM Booking WHERE userID = (SELECT userID FROM Member WHERE cardID = %s) AND useDate = %s"
-            sqlVar = (rfid, today)
+            sql = "SELECT resource, useStart, useEnd FROM Booking WHERE userID = (SELECT userID FROM Member WHERE cardID = %s) AND useDate = %s AND facility = %s"
+            sqlVar = (rfid, today, facility)
 
             #Run SQL Query
             cur.execute(sql, sqlVar)
@@ -195,11 +208,19 @@ def verifyBooking():
                 message = "False"
                 return message, 200
 
-            start = datetime.datetime.strptime(result[0][2], '%H:%M:%S').time()
-            end = datetime.datetime.strptime(result[0][3], '%H:%M:%S').time()
+            start = datetime.datetime.strptime(result[-1][1], '%H:%M:%S').time()
+            end = datetime.datetime.strptime(result[-1][2], '%H:%M:%S').time()
 
+            endVar = result[-1][2]
+            nowVar = datetime.datetime.now().strftime("%H:%M:%S")
+
+            #resFacility = result[][0]
+            resource = result[-1][0]
+            timeVar = timeLeft(nowVar, endVar)
+
+            print (result)
             if (start <= now) and (now <= end):
-                message = "True"
+                message = "True," + str(resource) + "," + str(timeVar)
             else:
                 message = "False"
         except mariadb.Error as e:

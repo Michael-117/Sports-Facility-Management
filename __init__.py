@@ -1,13 +1,15 @@
-from flask import Flask, flash, render_template, request, session, redirect, g
+from flask import Flask, flash, render_template, request, session, redirect, g,url_for
+import flask
 from flask_wtf import FlaskForm
-from wtforms import StringField,Form,TextField,TextAreaField, validators,SubmitField
-from wtforms.validators import InputRequired
+from wtforms import StringField,PasswordField,SubmitField,Form,TextField,TextAreaField, validators,SubmitField
+from wtforms.validators import ValidationError,EqualTo,InputRequired
 import datetime
 import hashlib
 import mysql.connector as mariadb
 import schedule
 import threading
 import os
+from flask_login import current_user,login_user,login_required
 
 def timeLeft(nowTime: str, endTime: str):
     nowVals = nowTime.split(":")
@@ -101,6 +103,33 @@ def login():
 
     flash(error, "success")
     return render_template('login.html')
+
+@app.route('/adduser',methods=['get','post'])
+@login_required
+class adduserForm(FlaskForm):
+    username=StringField('Username', validators=[InputRequired()])
+    fullname=StringField('Full Name', validators=[InputRequired()])
+    password=PasswordField('Password',validators=[InputRequired()])
+    submit=SubmitField('Register')
+    def validate_username(self,username):
+        user=User.query.filter_by(username=self.username.data).first()
+        if user is not None: #username exist
+            raise ValidationError('Please use a different username.')
+    
+    def adduser():
+        if not current_user.is_autheticated:
+            flash('Please Login in as admin to add user')
+            return redirect(url_for('login'))
+        if current_user.username!='admin':
+            flash('Please Log in as admin to add user')
+            return redirect(url_for('home'))
+        form=adduserForm()
+        if form.validate_on_submit():
+            user=User(username=form.username.input,fullname=form.fullname.input)
+            user.set_password(form.password.input)
+            session.add(user)
+
+        return render_template('adduser.html',title='Add User',form=form)
 
 #Booking Page
 @app.route('/booking', methods=['post', 'get'])

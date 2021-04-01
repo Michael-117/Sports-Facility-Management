@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block main %}
+    <div class="title">
+        Registration
+    </div>
+    <div class="login">
+        <form action="" method="POST">
+        
+            <div class="imgcontainer">
+                <img src="{{ url_for('static', filename='css/login.png') }}" alt="login" class="avatar">
+            </div>
+            <p>
+                <label for="username">Username</label>
+                <input type="text" name="username" placeholder="Enter Username" value="{{request.form.username}}">
+            </p>
+            <p>
+                <label for="fullname">Full name</label>
+                <input type="text" name="sullname" placeholder="Enter Full name" value="{{request.form.fullname}}">
+            </p>
+            <p>
+                <label for="password">Password</label>
+                <input type="password" name="password" placeholder="Enter Password" value="{{request.form.password}}">
+            </p>
+            <p>
+                <input type="submit" value="adduser"/>
+            
+            </p>
+        </form>
+    </div>
+    
+
+{% endblock %}

@@ -15,7 +15,11 @@ import schedule
 import time
 import threading
 from werkzeug.security import check_password_hash
-
+os.chdir('..')
+from forms import forms
+from flask_login import current_user, login_user, logout_user, login_required
+import mysql.connector as mariadb
+import datetime
 
 app= Flask(__name__)
 app.config['DEBUG'] = True
@@ -68,13 +72,93 @@ def profile():
     return render_template('profile.html')
 
 
-@app.route('/booking/')
+#Booking Page
+@app.route('/booking', methods=['post', 'get'])
+@login_required
 def booking():
+    if not g.user:
+        return redirect('/SFMS/login')
+    message = ""
+
+    #Retrieve POST Request Data
+    if (request.method == 'POST'):
+        facility = request.form.get('facility')
+        resource = request.form.get('resource')
+        date = request.form.get('date')
+        startTime = request.form.get('startTime')
+        endTime = request.form.get('endTime')
+
+        try:
+            #Connect to DB
+            conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
+            cur = conn.cursor()
+
+	    #Create SQL Query
+            sql = "INSERT INTO Booking (facility, resource, useStart, useEnd, useDate, userID) VALUES (%s, %s, %s, %s, %s, %s)"
+            sqlVar = (facility, resource, startTime, endTime, date, g.user.id )
+
+	    #Run SQL Query
+            cur.execute(sql, sqlVar)
+            conn.commit()
+            cur.close()
+            conn.close()
+
+        except mariadb.Error as e:
+            print(f"Error: {e}")
+    message = "Booking Created Successfully"
+    flash(message, "success")
+    return render_template('booking.html')
 
 
-    return render_template("booking.html",booking=booking)
 
+@app.route('/cancelbooking',methods=['GET','POST'])
+@login_required
+def cancelbooking():
+    if not current_user.is_authenticated:
+        flash('Please Log in to cancel booking')
+        return redirect(url_for('login')) 
     
+    form=CancelbookingForm()
+    if form.validate_on_submit():
+        meeting=Meeting.query.filter_by(id=form.ids.data).first()
+
+        if meeting.date<=datetime.now():
+            flash(f'Past booking cannot be canceled')
+            return redirect(url_for('cancelbooking'))
+        
+        participants_user=Participants_user.query.filter_by(meeting=meeting.title).all()
+        for part in participants_user:
+            db.session.delete(part)
+        participants_partner=Participants_partner.query.filter_by(meeting=meeting.title).all()
+        for part in participants_partner:
+            db.session.delete(part)
+        
+        costlog=CostLog.query.filter_by(title=meeting.title).first()
+        db.session.delete(costlog)
+        
+        db.session.delete(meeting)
+        db.session.commit()
+        flash(f'Meeting {meeting.title} successfully deleted! ')
+        return redirect(url_for('index'))
+    return render_template('cancelbooking.html',title='Cancel Meeting',form=form)
+
+@app.route('/roomavailable',methods=['GET','POST'])
+def roomavailable():
+    form=RoomavailableForm()
+    if form.validate_on_submit():
+        meetings=Meeting.query.filter_by(date=datetime.combine(form.date.data,datetime.min.time())).all()
+        roomsOccupied=set()
+        for meeting in meetings:
+            if (form.startTime.data<meeting.endTime and (form.startTime.data+form.duration.data)>meeting.startTime): 
+                roomsOccupied.add(Room.query.filter_by(id=meeting.roomId).first())
+        rooms=Room.query.all()
+        roomsavailable=[]
+        for room in rooms:
+            if room not in roomsOccupied:
+                roomsavailable.append(room)
+        return render_template('roomavailablelist.html',title='Room available',rooms=roomsavailable)
+    return render_template('roomavailable.html',title='Room availability check',form=form)
+
 
 
 

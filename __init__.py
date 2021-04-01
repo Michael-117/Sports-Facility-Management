@@ -55,7 +55,7 @@ def home():
 @app.route('/login', methods=['post', 'get'])
 def login():
     error = ""
-    if(request.method=='POST'):
+    if(request.method=='post'):
 
 	#Remove session
         session.pop('user_ID', None)
@@ -120,7 +120,7 @@ class adduserForm(FlaskForm):
         if not current_user.is_autheticated:
             flash('Please Login in as admin to add user')
             return redirect(url_for('login'))
-        if current_user.username!='admin':
+        if current_user.username!='jbrown123':
             flash('Please Log in as admin to add user')
             return redirect(url_for('home'))
         form=adduserForm()

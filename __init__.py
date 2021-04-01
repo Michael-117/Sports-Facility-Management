@@ -107,9 +107,13 @@ def login():
 @app.route('/adduser',methods=['get','post'])
 @login_required
 class adduserForm(FlaskForm):
+    firstname=StringField('First Name', validators=[InputRequired()])
+    lastname=StringField('Last Name', validators=[InputRequired()])
     username=StringField('Username', validators=[InputRequired()])
-    fullname=StringField('Full Name', validators=[InputRequired()])
-    password=PasswordField('Password',validators=[InputRequired()])
+    usertype=StringField('User type', validators=[InputRequired()])
+    useraddress=StringField('User address', validators=[InputRequired()])
+    useremail=StringField('User email', validators=[InputRequired()])
+    telephone=StringField('Telephone', validators=[InputRequired()])
     submit=SubmitField('Register')
     def validate_username(self,username):
         user=User.query.filter_by(username=self.username.data).first()

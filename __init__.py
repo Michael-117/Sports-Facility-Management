@@ -137,6 +137,7 @@ class adduserForm(FlaskForm):
 
 #Booking Page
 @app.route('/booking', methods=['post', 'get'])
+@login_required
 def booking():
     if not g.user:
         return redirect('/SFMS/login')
@@ -202,6 +203,7 @@ def errorpage():
 
 #Verify Booking
 @app.route('/verify', methods=['post', 'get'])
+@login_required
 def verifyBooking():
 
     message = ""

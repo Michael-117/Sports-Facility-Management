@@ -11,9 +11,6 @@
     <ul>
      
         <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
-      
-      
-          <a href="{{ url_for('login') }}">Login</a>
        
           <a href="{{ url_for('home') }}">Home</a>
        
@@ -21,8 +18,18 @@
        
           <a  href="{{ url_for('profile') }}">Profile</a> 
        
+    </ul>
 
-           
+    <ul class="navbar-nav">
+      {%if current_user.is_authenticated %}
+        <li class="nav-item active ">
+          <a class="nav-link" href="{{ url_for('logout') }}">Logout</a>
+        </li>
+      {% else %}
+        <li class="nav-item active ">
+          <a class="nav-link" href="{{ url_for('login') }}">Login</a>
+        </li>
+      {% endif %}
     </ul>
      
   

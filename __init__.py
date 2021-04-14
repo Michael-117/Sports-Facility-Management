@@ -25,7 +25,19 @@ class User:
         self.id = id
         self.username = username
         self.firstname = firstname
-        self.userType = userType
+        self.userType = userType  
+
+    # Checks if a user is authenticated
+    def is_authenticated(self):
+        return True
+    #checks to see if a logged-in user is active
+    def is_active(self):
+        return True
+
+    #Checks to ensure that the user is NOT anonymous
+    def is_anonymous(self):
+        return False
+
 
     def __repr__(self):
         return f'<User: {self.username}>'
@@ -94,7 +106,6 @@ def login():
                 users.append(User(result[0][1], username, result[0][2], result[0][3]))
                 cur.close()
                 conn.close()
-
                 #Redirect to profile page
                 return redirect('/SFMS/profile')
 
@@ -104,6 +115,16 @@ def login():
 
     flash(error, "success")
     return render_template('login.html')
+
+#Logout Function
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    
+    flash('You have been logged out.', 'danger')
+    return redirect(url_for('home'))
+
 
 
 #Create User Page
@@ -130,7 +151,7 @@ def newUser():
             conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
             cur = conn.cursor()
 
-            #Create SQL Query
+            #Create User SQL Query
             sql = "INSERT INTO SFMSUser (firstName, lastName, username, userType, userAddress, email, telephone, sesame) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
             sqlVar = (firstname, lastname, username, usertype, useraddress, useremail, telephone, hashedPassword)
 

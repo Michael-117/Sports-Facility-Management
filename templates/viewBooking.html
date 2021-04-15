@@ -31,7 +31,6 @@
                 <th> Start Time </th>
                 <th> End Time </th>
                 <th> Use Date </th>
-              
             </tr>
         </thead>
         {% for i in bookingids %}
@@ -39,7 +38,7 @@
         <tr>
 
             <td> {{i}} </td>
-            <td> {{bookdatetime[bookingids.index(i)]}} </td>
+            <td> {{bookingdatetime[bookingids.index(i)]}} </td>
             <td> {{resourcenames[bookingids.index(i)]}} </td>
             <td> {{facilitynames[firstName.index(i)]}} </td>
             <td> {{starttimes[firstName.index(i)]}} </td>

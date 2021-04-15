@@ -5,7 +5,15 @@
     <div> System Log Report </div>
 </div>
 
-<div class = ""> </div>
+<div class = "dropdown"> 
+    <select name="range" id="range">
+        <option value="today">Today</option>
+        <option value="week">Week</option>
+        <option value="month">Month</option>
+    </select>
+</div>
+
+
 <div class = "">   
     <table> 
         <thead>
@@ -30,6 +38,10 @@
         {% endfor %}
     </table>
 </div>
+
+<label for="cars">Choose a car:</label>
+
+
 
 {% endblock %}
    

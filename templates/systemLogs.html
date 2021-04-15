@@ -1,17 +1,23 @@
 {% extends 'base.html'%}
 
 {% block main%}
-<div class = "today"> 
+<div class = "logs"> 
     <div> System Log Report </div>
 </div>
 
+<form action="" method = 'POST'> 
+
 <div class = "dropdown"> 
+    <label for="down">Choose a range:</label>
+
     <select name="range" id="range">
         <option value="today">Today</option>
         <option value="week">Week</option>
         <option value="month">Month</option>
     </select>
+<input type="submit" value ="submit">
 </div>
+</form>
 
 
 <div class = "">   
@@ -39,7 +45,6 @@
     </table>
 </div>
 
-<label for="cars">Choose a car:</label>
 
 
 

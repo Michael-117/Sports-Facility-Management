@@ -1,0 +1,59 @@
+{% extends 'base.html'%}
+
+{% block main%}
+<div class = "bookings"> 
+    <div> Bookings </div>
+</div>
+
+<form action="" method = 'POST'> 
+
+<div class = "dropdown"> 
+    <label for="dropdown">Choose a range:</label>
+    <select name="range" id="range">
+        <option value="all">All</option>
+        <option value="today">Today</option>
+        <option value="week">Week</option>
+        <option value="month">Month</option>
+    </select>
+</div>
+<input type="submit" value ="Submit">
+</form>
+
+
+<div class = "table">   
+    <table> 
+        <thead>
+            <tr>
+                <th> Booking ID </th>
+                <th> Booking Creation Date/Time </th>
+                <th> Resource </th>
+                <th> Facility </th>
+                <th> Start Time </th>
+                <th> End Time </th>
+                <th> Use Date </th>
+              
+            </tr>
+        </thead>
+        {% for i in bookingids %}
+
+        <tr>
+
+            <td> {{i}} </td>
+            <td> {{bookdatetime[bookingids.index(i)]}} </td>
+            <td> {{resourcenames[bookingids.index(i)]}} </td>
+            <td> {{facilitynames[firstName.index(i)]}} </td>
+            <td> {{starttimes[firstName.index(i)]}} </td>
+            <td> {{endtimes[bookingids.index(i)]}} </td>
+            <td> {{usedate[bookingids.index(i)]}} </td>
+       
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+
+
+
+
+{% endblock %}
+   

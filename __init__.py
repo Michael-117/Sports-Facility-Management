@@ -1,8 +1,8 @@
 import datetime
-from dateutil.relativedelta import *
 import hashlib
 
 import mysql.connector as mariadb
+from dateutil.relativedelta import *
 from flask import Flask, flash, g, redirect, render_template, request, session
 from flask_wtf import FlaskForm
 from wtforms import (Form, StringField, SubmitField, TextAreaField, TextField,
@@ -22,11 +22,13 @@ lastMonth = now - relativedelta(months=1)
 lastWeekString = lastWeek.strftime("%Y-%m-%d")
 lastMonthString = lastMonth.strftime("%Y-%m-%d")
 
-def timeLeft(nowTime: str, endTime: str):
+
+#Function to calculate time remaining for a booking based off current time, booking end time and a preset grace period
+def timeLeft(nowTime: str, endTime: str, timeBuffer: str):
     nowVals = nowTime.split(":")
     endVals = endTime.split(":")
     hrsDiff = int(endVals[0]) - int(nowVals[0])
-    minsDiff = int(endVals[1]) - int(nowVals[1]) + 10
+    minsDiff = int(endVals[1]) - int(nowVals[1]) + int(timeBuffer)
     secDiff = int(endVals[2]) - int(nowVals[2])
 
     secsLeft = (hrsDiff*3600) + (minsDiff*60) + (secDiff)

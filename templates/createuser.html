@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block main %}
+    <div class="login">
+        <form action="" method="POST">
+        
+            <div class="imgcontainer">
+                <img src="/SFMS/static/css/login.png" alt="login" class="avatar">
+            </div>
+            <p>
+                <label for="firstname">First Name</label>
+                <input type="text" name="firstname" placeholder="Enter First Name" value="{{request.form.firstname}}">
+            </p>
+            <p>
+                <label for="lastname">Last Name</label>
+                <input type="text" name="lastname" placeholder="Enter Last Name" value="{{request.form.lastname}}">
+            </p>
+                        <p>
+                <label for="username">Username</label>
+                <input type="text" name="username" placeholder="Enter Username" value="{{request.form.username}}">
+            </p>
+            <p>
+                <label for="usertype">User Type</label>
+                <input type="text" name="usertype" placeholder="Enter User Type" value="{{request.form.usertype}}">
+            </p>
+            <p>
+                <label for="useraddress">User Address</label>
+                <input type="text" name="useraddress" placeholder="Enter Address" value="{{request.form.useraddress}}">
+            </p>
+            <p>
+                <label for="useremail">Email Address</label>
+                <input type="text" name="useremail" placeholder="Enter Email Address" value="{{request.form.useremail}}">
+            </p>
+            <p>
+                <label for="telephone">Telephone Number</label>
+                <input type="text" name="telephone" placeholder="Enter Phone Number" value="{{request.form.telephone}}">
+            </p>
+            <p>
+                <input type="submit" value="Create User"/>
+            
+            </p>
+        </form>
+    </div>
+    
+
+{% endblock %}

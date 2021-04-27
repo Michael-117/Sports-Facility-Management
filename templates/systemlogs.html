@@ -1,0 +1,44 @@
+{% extends 'base.html'%}
+
+{% block main%}
+<div class = "today"> 
+    <div> System Log Report </div>
+</div>
+
+<form method = "POST">
+<div class = "dropdown"> 
+    <select name="range" id="range">
+        <option value="today">Today</option>
+        <option value="week">Week</option>
+        <option value="month">Month</option>
+    </select>
+</div>
+<input type="submit" value="Search"/>
+</form>
+
+<div class = "">   
+    <table> 
+        <thead>
+            <tr>
+                <th> First Name </th>
+                <th> Last Name </th>
+                <th> Facility </th>
+                <th> Attempted Access Date/Time </th>
+         
+            </tr>
+        </thead>
+        {% for i in readingTime %}
+
+        <tr>
+
+            <td> {{firstName[readingTime.index(i)]}} </td>
+            <td> {{lastName[readingTime.index(i)]}} </td>
+            <td> {{facilityName[readingTime.index(i)]}} </td>
+            <td> {{readingTime[readingTime.index(i)]}} </td>
+       
+        </tr>
+        {% endfor %}
+    </table>
+</div>
+
+{% endblock %}

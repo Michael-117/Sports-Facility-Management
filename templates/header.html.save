@@ -18,14 +18,12 @@
        
           <a href="/SFMS/profile">Profile</a> 
        
-          <a href="/SFMS/viewbooking">View Bookings</a>
 
           {%if g.user.userType == "admin" %}
               <a href="/SFMS/newuser">User Management</a>
               <a href="/SFMS/assigncard">Card Management</a>
               <a href="/SFMS/systemlogs">System Logs</a>        
           {% endif %}
-
 
           {%if g.user %}
               <a href="/SFMS/logout">Logout</a>

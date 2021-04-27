@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -10,7 +11,7 @@
     <title>Capstone App</title>
 
     <!-- Bootstrap -->
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+    <link rel="stylesheet" href="/SFMS/static/css/app.css">
     {% block css %} 
     
     {% endblock%}
@@ -41,13 +42,13 @@
             {% include "footer.html" %}
         </div>
     </footer>
-    <script src="static/app.js"></script>
+    <script src="/SFMS/static/js/app.js"></script>
 
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="{{ url_for('static', filename='js/bootstrap.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <script src="/SFMS/static/css/bootstrap.min.css"></script>
+    <script src="/SFMS/static/js/app.js"></script>
     {% block js %} {% endblock%}
   </body>
 </html>

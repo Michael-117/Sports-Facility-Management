@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+
+{% block main %}
+
+<form action="" method="post">
+
+    <p>
+    <label for="addcard">Add New Card:</label>
+    <input type="text" name="addcard" action="">
+    </p>
+    <input type="submit" name= "addNew" value="Add New Card">
+
+</form>
+<form action="" method="post">
+
+    <p>
+    <label for="username">System Users:</label>
+    <select name = "username" method="GET" action="">
+        {% for username in users %}
+        <option value = "{{username}}" SELECTED> {{username}}</option>"
+        {% endfor %}
+    </select>
+    </p>
+
+    <p>
+    <label for="newcards">Currently Unassigned Cards:</label>
+    <select name = "newcards" method="GET" action="">
+        {% for cards in newcards %}
+        <option value = "{{cards}}" SELECTED> {{cards}}</option>"
+        {% endfor %}
+    </select>
+    </p>
+    <input type="submit" name= "assignNew" value="Assign New Card">
+
+
+    <p>
+    <label for="usedcards">Currently Assigned Cards:</label>
+    <select name = "usedcards" method="GET" action="">
+        {% for cards in usedcards %}
+        <option value = "{{cards}}" SELECTED> {{cards}}</option>"
+        {% endfor %}
+    </select>
+    </p>
+
+    <input type="submit" name="reassign" value="Reassign Card">
+
+{% endblock %}

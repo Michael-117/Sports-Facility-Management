@@ -1,43 +1,92 @@
 {% extends "base.html" %}
 
-{% block content %}
-    <h1>Book Meeting</h1>
-    <form action="" method="post">
-        {{ form.hidden_tag() }}
-        {% for error in form.title.errors %}
-        <span style="color: red;">[{{ error }}]</span>
-        {% endfor %}
-        
-        
-        {% from "_formhelpers.html" import render_field %}
-        
-            {{ form.title.label}}    
-            {{ form.title(size=32)}}
-            
-            <dl>
-                {{ render_field(form.rooms) }}
-            </dl>
-                {{ form.date.label}}
-                {{ form.date(class="dtpick") }}
-                {% for error in form.date.errors %}
-                <span style="color: red;">[{{ error }}]</span>
-                {% endfor %}
-            <dl>
-                {{ render_field(form.startTime) }}
-                {{ render_field(form.duration)}}
-            </dl>
-                {{ form.participants_user.label }}
-                {{ form.participants_user()}}
-                {% for error in form.participants_user.errors %}
-                <span style="color: red;">[{{ error }}]</span>
-                {% endfor %}
-                {{ form.participants_partner.label }}
-                {{ form.participants_partner()}}
-                {% for error in form.participants_partner.errors %}
-                <span style="color: red;">[{{ error }}]</span>
-                {% endfor %}
-                
-        
-        <p>{{ form.submit() }}</p>
-    </form>
+{% block main %}
+{% include 'flash_messages.html' %}
+
+<h1 class="section-title">Booking</h1>
+<div class="events-container"></div>
+</section>
+<section id="add-event">
+<h1 class="section-title">New Booking for {{g.user.firstname}}</h1>
+<form class="form" action="" method="POST">
+
+    <select id="status" name="facilityID">
+        <option value="1">Football Facility</option>
+        <option value="2">Tennis Facility</option>
+    </select>
+
+    <select id="status" name="resourceID">
+    <option value="1">Football Field 1</option>
+    <option value="2">Football Field 2</option>                                                                      
+    <option value="1">Tennis Court 1</option>
+    <option value="2">Tennis Court 2</option>
+    </select>
+   
+    <select id="status" name="date">
+      <option value="2021-03-24">2021-03-24</option>
+      <option value="2021-03-25">2021-03-25</option>
+      <option value="2021-03-26">2021-03-26</option>
+      <option value="2021-03-27">2021-03-27</option>
+      <option value="2021-03-28">2021-03-28</option>
+      <option value="2021-03-29">2021-03-29</option>
+      <option value="2021-03-30">2021-03-30</option>
+      <option value="2021-03-31">2021-03-31</option>
+    </select>
+
+    <select id="status" name="startTime">
+      <option value="00:00:00">12 am</option>
+      <option value="01:00:00">1 am</option>
+      <option value="02:00:00">2 am</option>
+      <option value="03:00:00">3 am</option>
+      <option value="04:00:00">4 am</option>
+      <option value="05:00:00">5 am</option>
+      <option value="06:00:00">6 am</option>
+      <option value="07:00:00">7 am</option>
+      <option value="08:00:00">8 am</option>
+      <option value="09:00:00">9 am</option>
+      <option value="10:00:00">10 am</option>
+      <option value="11:00:00">11 am</option>
+      <option value="12:00:00">12 pm</option>
+      <option value="13:00:00">1 pm</option>
+      <option value="14:00:00">2 pm</option>
+      <option value="15:00:00">3 pm</option>               
+      <option value="16:00:00">4 pm</option>
+      <option value="17:00:00">5 pm</option>
+      <option value="18:00:00">6 pm</option>
+      <option value="19:00:00">7 pm</option>
+      <option value="20:00:00">8 pm</option>
+      <option value="21:00:00">9 pm</option>
+      <option value="22:00:00">10 pm</option>
+      <option value="23:00:00">11 pm</option>
+    </select>
+
+    <select id="status" name="endTime">
+    <option value="23:50:00">11:50 pm</option>
+    <option value="00:50:00">12:50 am</option>
+    <option value="01:50:00">1:50 am</option>
+    <option value="02:50:00">2:50 am</option>
+    <option value="03:50:00">3:50 am</option>
+    <option value="04:50:00">4:50 am</option>
+    <option value="05:50:00">5:50 am</option>
+    <option value="06:50:00">6:50 am</option>
+    <option value="07:50:00">7:50 am</option>
+    <option value="08:50:00">8:50 am</option>
+    <option value="09:50:00">9:50 am</option>
+    <option value="10:50:00">10:50 am</option>
+    <option value="11:50:00">11:50 am</option>
+    <option value="12:50:00">12:50 pm</option>
+    <option value="13:50:00">1:50 pm</option>
+    <option value="14:50:00">2:50 pm</option>
+    <option value="15:50:00">3:50 pm</option>
+    <option value="16:50:00">4:50 pm</option>
+    <option value="17:50:00">5:50 pm</option>
+    <option value="18:50:00">6:50 pm</option>
+    <option value="19:50:00">7:50 pm</option>
+    <option value="20:50:00">8:50 pm</option>
+    <option value="21:50:00">9:50 pm</option>
+    <option value="22:50:00">10:50 pm</option>
+    </select>
+
+    <button class="btn btn-primary" type="submit" >Place Booking</button>
+  
 {% endblock %}

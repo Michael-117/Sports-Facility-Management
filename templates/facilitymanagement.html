@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block main %}
+
+<div name="addFacility">
+    <form action="" method="POST">
+        <p>
+            <label for="facilityName">Facility Name</label>
+            <input type="text" name="facilityName" placeholder="Enter Facility Name" value="{{request.form.facilityName}}">
+        </p>
+        <p>
+            <label for="r1">Resource 1 Name</label>
+            <input type="text" name="r1" placeholder="Enter Resource 1 Name" value="{{request.form.r1}}">
+        </p>
+        <p>
+            <label for="status1">Resource 1 Status</label>
+            <select name="status1">
+                <option value="Available" SELECTED> Available </option>
+                <option value="Unavailable" SELECTED> Unavailable </option>
+            </select>
+        </p>
+        <p>
+            <label for="r2">Resource 2 Name</label>
+            <input type="text" name="r2" placeholder="Enter Resource 2 Name" value="{{request.form.r2}}">
+        </p>
+        <p>
+            <label for="status2">Resource 2 Status</label>
+            <select name="status2">
+                <option value="Available" SELECTED> Available </option>
+                <option value="Unavailable" SELECTED> Unavailable </option>
+            </select>
+        </p>
+        <p>
+            <label for="session">Session Length</label>
+            <input type="number" min=0 max=60 placeholder="0 - 60 Minutes" name="session" value="{{request.form.session}}">
+        </p>
+        <p>
+            <label for="grace">Grace Period</label>
+            <input type="number" min=0 max=15 placeholder="0 - 15 Minutes" name="grace" value="{{request.form.grace}}">
+        </p>
+        <input type="submit" name="addFacility" value="Create New Facility">
+    </form>
+</div>
+<div name="removeFacility">
+    <form action="" method="POST">
+        <p>
+            <label for="facilityName">Which facility do you want to remove?</label>
+            <select  name="facilityName" method="GET">
+                {% for facility in facilities %}
+                <option value = "{{facility}}" SELECTED> {{facility}}</option>"
+                {% endfor %}
+            </select>
+        </p>
+        <input type="submit" name="remove" value="Remove Facility">
+    </form>
+</div>
+
+<div name="manageResource">
+    <form action="/SFMS/resourcemanagement" method="POST">
+        <p>
+            <label for="facilityName">Which facility do you want to manage?</label>
+            <select  name="facilityName" method="GET">
+                {% for facility in facilities %}
+                <option value = "{{facility}}" SELECTED> {{facility}}</option>"
+                {% endfor %}
+            </select>
+        </p>
+        <input type="submit" name="manage" value="Manage Facility">
+    </form>
+</div>
+{% endblock %}

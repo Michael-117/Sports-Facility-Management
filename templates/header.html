@@ -14,23 +14,25 @@
        
           <a href="/SFMS/home">Home</a>
        
-          <a href="/SFMS/booking">Booking</a>
-       
           <a href="/SFMS/profile">Profile</a> 
-       
-          <a href="/SFMS/viewbooking">View Bookings</a>
+          
+          <a href="/SFMS/booking">Create Booking</a>
+
+          <a href="/SFMS/viewbooking">Booking Management</a>
 
           {%if g.user.userType == "admin" %}
-              <a href="/SFMS/newuser">User Management</a>
-              <a href="/SFMS/assigncard">Card Management</a>
-              <a href="/SFMS/systemlogs">System Logs</a>        
+            <a href="/SFMS/facilitymanagement">Facility Management</a>
+            <a href="/SFMS/usermanagement">User Management</a>
+            <a href="/SFMS/cardmanagement">Card Management</a>
+            <a href="/SFMS/systemlogs">System Logs</a>        
           {% endif %}
 
+          <a href="https://sportsfacilitymanagementsystem.weebly.com/">Product Page</a>
 
           {%if g.user %}
-              <a href="/SFMS/logout">Logout</a>
+            <a href="/SFMS/logout">Logout</a>
           {% else %}
-              <a href="/SFMS/login">Login</a>
+            <a href="/SFMS/login">Login</a>
           {% endif %}
 
     </ul>

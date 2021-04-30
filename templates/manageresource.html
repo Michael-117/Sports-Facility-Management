@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block main %}
+
+<div name="updateStatus">
+    <div>
+        {{resources[0]}} {{resourceNum[0]}} | Status : {{status[0]}}
+    </div>
+    <div>
+        {{resources[1]}} {{resourceNum[1]}} | Status : {{status[1]}}
+    </div>
+    <form action="" method="POST">
+        <input type="hidden" name="facilityName" value="{{facilityName}}">
+        <label for="resourceNum">Which resource's status do you want to adjust?</label>
+        <select  name="resourceNum" method="GET">
+            {% for number in resourceNum %}
+            <option value = "{{number}}" SELECTED> {{resources[resourceNum.index(number)]}} {{number}}</option>"
+            {% endfor %}
+        </select>
+        <label for="status">New Status</label>
+        <select  name="status" method="GET">
+            <option value = "Available" SELECTED> Available</option>"
+            <option value = "Unavailable" SELECTED> Unavailable</option>"
+        </select>
+        <input type="submit" name="updateStatus" value="Update Resource Status">
+    </form>
+    
+</div>
+
+<div name="rename">
+    <form action="" method="POST">
+        <input type="hidden" name="facilityName" value="{{facilityName}}">
+        <label for="resourceNum">Which resource do you want to rename?</label>
+        <select  name="resourceNum" method="GET">
+            {% for resource in resources %}
+            <option value = "{{resource}}" SELECTED> {{resource}}</option>"
+            {% endfor %}
+        </select>
+        <label for="newresourceName">New Name</label>
+        <input type="text" name="newresourceName" value="{{request.form.newresourceName}}">
+        <input type="submit" name="rename" value="Rename Resource">
+    </form>
+</div>
+
+{% endblock %}

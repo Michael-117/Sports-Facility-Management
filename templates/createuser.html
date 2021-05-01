@@ -36,10 +36,27 @@
                 <input type="text" name="telephone" placeholder="Enter Phone Number" value="{{request.form.telephone}}">
             </p>
             <p>
-                <input type="submit" value="Create User"/>
+                <input type="submit" name = "adduser" value="Create User"/>
             
             </p>
         </form>
+    </div>
+    <div class="login">
+        <div>
+            <form action="" method="POST">
+                <p>
+                    <label for="username">User to Remove</label>
+                    <select name="username">
+                        {% for i in firstname %}
+                        <option value="{{username[firstname.index(i)]}}" SELECTED> {{i}} {{lastname[firstname.index(i)]}} || Username - {{username[firstname.index(i)]}}</option>
+                        {% endfor %}
+                    </select>
+                </p>
+                <p>
+                    <input type="submit" name="deactivate" value = "Remove User">
+                </p>
+            </form>
+        </div>
     </div>
     
 

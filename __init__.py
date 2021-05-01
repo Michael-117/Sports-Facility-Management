@@ -483,10 +483,40 @@ def newUser():
         return redirect('/SFMS/')
     message = ""
 
+    fname = []
+    lname = []
+    usernames = []
+
+    try:
+        #Connect to DB
+        conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
+        cur = conn.cursor()
+
+        #Create SQL Query
+        sql = "SELECT firstName, lastName, username FROM SFMSUser WHERE userType != 'admin' AND userType != 'SYSTEM' AND status != 'inactive'"
+
+        #Run SQL Query
+        cur.execute(sql,)
+        result = cur.fetchall()
+        cur.close()
+        conn.close()
+
+
+        for i in range(0,len(result)):
+            fname.append(result[i][0])
+            lname.append(result[i][1])
+            usernames.append(result[i][2])
+
+        flash(message, "success")
+    except mariadb.Error as e:
+        print(f"Error: {e}")
+
+    
+    
     #Retrieve POST Request Data
     if (request.method == 'POST'): 
         
-        if "create" in request.form:
+        if "adduser" in request.form:
 
             firstname = request.form.get('firstname')
             lastname = request.form.get('lastname')
@@ -504,8 +534,8 @@ def newUser():
                 cur = conn.cursor()
 
                 #Create SQL Query
-                sql = "INSERT INTO SFMSUser (firstName, lastName, username, userType, userAddress, email, telephone, sesame) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"
-                sqlVar = (firstname, lastname, username, usertype, useraddress, useremail, telephone, hashedPassword)
+                sql = "INSERT INTO SFMSUser (firstName, lastName, username, userType, userAddress, email, telephone, sesame, status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
+                sqlVar = (firstname, lastname, username, usertype, useraddress, useremail, telephone, hashedPassword, "active")
 
                 #Run SQL Query
                 cur.execute(sql, sqlVar)
@@ -517,7 +547,41 @@ def newUser():
             except mariadb.Error as e:
                 print(f"Error: {e}")
 
-    return render_template("createuser.html")
+            return redirect('/SFMS/usermanagement')
+
+        if "deactivate" in request.form:
+
+            username = request.form.get('username')
+
+            try:
+                #Connect to DB
+                conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
+                cur = conn.cursor()
+
+                #Create SQL Query
+                sql = "UPDATE SFMSUser SET status = %s WHERE username = %s"
+                sqlVar = ("inactive",username)
+
+                #Run SQL Query
+                cur.execute(sql, sqlVar)
+                conn.commit()
+
+                sql = "UPDATE Cards SET userID = 0 WHERE userID = (SELECT userID FROM SFMSUser WHERE username = %s)"
+                sqlVar = (username,)
+
+                #Run SQL Query
+                cur.execute(sql, sqlVar)
+                conn.commit()
+                cur.close()
+                conn.close()
+
+            except mariadb.Error as e:
+                print(f"Error: {e}")
+
+            return redirect('/SFMS/usermanagement')
+
+
+    return render_template("createuser.html", firstname = fname, lastname = lname, username = usernames)
 
 #Assign RFID Card to Member
 @app.route('/cardmanagement', methods = ['post', 'get'])
@@ -539,7 +603,7 @@ def assign():
     try:
 
         #Connect to DB
-        conn = mariadb.connect(user="esp32", password="esp_boss5", host="localhost", database="SFM")
+        conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
         cur = conn.cursor()
 
 
@@ -604,7 +668,7 @@ def assign():
                 conn.commit()
                 cur.close()
                 conn.close()
-                return redirect('/SFMS/assigncard')
+                return redirect('/SFMS/cardmanagement')
 
             except mariadb.Error as e:
                 print(f"Error: {e}")

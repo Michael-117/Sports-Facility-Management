@@ -354,6 +354,22 @@ def newFacility():
                     cur.execute(sql, sqlVar)
                     conn.commit()
 
+                    tableVar = facilityName.split(" ")
+                    tablename = tableVar[0][0] + tableVar[1][0] + "R" + str(resourceNum)
+                    print(tablename)
+
+                    sql = "DROP TABLE IF EXISTS `%s`"
+                    sqlVar = (tablename,)
+                    #Run SQL Query
+                    cur.execute(sql, sqlVar)
+                    conn.commit()
+
+                    sql = "CREATE TABLE `%s` (slotID int(11) AUTO_INCREMENT NOT NULL PRIMARY KEY, timeStart time NOT NULL, timeStop time NOT NULL, bookingID int(11), status varchar(10) NOT NULL DEFAULT 'free')"
+                    sqlVar = (tablename,)
+                    #Run SQL Query
+                    cur.execute(sql, sqlVar)
+                    conn.commit()
+
                 cur.close()
                 conn.close()
 

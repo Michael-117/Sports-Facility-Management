@@ -93,7 +93,7 @@ padding: 16px;
 form {border: 3px solid #f1f1f1;}
 
 label,input[type=text],input[type=number],select, input[type=password] {
-width: 100%;
+width: 80%;
 padding: 12px 20px;
 margin:0 100px;
 display: inline-block;
@@ -157,6 +157,21 @@ padding-top: 16px;
   content: "";
   display: table;
   clear: both;
+}
+table {
+  font-family: arial, sans-serif;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+td, th {
+  border: 1px solid #dddddd;
+  text-align: left;
+  padding: 8px;
+}
+
+tr:nth-child(even) {
+  background-color: #dddddd;
 }
 
 

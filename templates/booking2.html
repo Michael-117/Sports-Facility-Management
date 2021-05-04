@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block main %}
+{% include 'flash_messages.html' %}
+
+<h1 class="section-title">Booking</h1>
+<div class="events-container"></div>
+</section>
+<section id="add-event">
+<h1 class="section-title">New Booking for {{g.user.firstname}}</h1>
+<form class="form" action="" method="POST" >
+    <datalist id="startTime">
+        <option value="" disabled selected>Choose Your Start Time</option>
+        {% for i in startTimes%}
+        <option>{{i}}</option>
+        {% endfor %}
+    </datalist>
+
+    <datalist id="endTime">
+        <option value="" disabled selected>Choose Your End Time</option>
+        {% for i in endTimes%}
+        <option>{{i}}</option>
+        {% endfor %}
+    </datalist>
+
+    <input type="time" list="startTime" name="startTime">
+
+    <input type="time" list="endTime" name="endTime">
+
+    <button class="btn btn-primary" type="submit" name="book">Place Booking</button>
+</form>
+{% endblock %}

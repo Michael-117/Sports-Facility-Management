@@ -18,7 +18,7 @@
         {% endfor %}
     </select>
     
-    <input type="date" id="status" name="date">
+    <input type="date" id="status" name="date" required min="{{today}}" max="{{endRange}}">
 
     <button class="btn btn-primary" type="submit" name="search">Check Availability</button>
 </form>

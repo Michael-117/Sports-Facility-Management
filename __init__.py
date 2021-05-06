@@ -10,7 +10,7 @@ from wtforms import (Form, StringField, SubmitField, TextAreaField, TextField,
 from wtforms.validators import InputRequired
 
 now = datetime.datetime.now()
-date = now.strftime("%Y-%m-%d")
+dateToday = now.strftime("%Y-%m-%d")
 
 nextWeek = now + relativedelta(weeks=1)
 nextMonth = now + relativedelta(months=1)
@@ -178,6 +178,8 @@ def booking():
     resources = []
     sessions1 = []
     sessions2 = []
+    sessions1ids = []
+    sessions2ids = []
     
     try:
         #Connect to DB
@@ -206,6 +208,8 @@ def booking():
             dateVar = request.form.get('date')
             dateVar = dateVar.split("-")
             date = dateVar[0] + ":" + dateVar[1] + ":" + dateVar[2]
+            tablename = ""
+            tablenameRes = ""
         
             try:
                 #Connect to DB
@@ -220,6 +224,8 @@ def booking():
                 cur.execute(sql, sqlVar)
                 result = cur.fetchone()
                 facilityName = result[0]
+                tableVar = facilityName.split(" ")
+                tablename = tableVar[0][0] + tableVar[1][0] + "R"
 
                 #Create SQL Query
                 sql = "SELECT resourceNumber FROM Resources WHERE facilityID = %s AND status = %s"
@@ -231,11 +237,10 @@ def booking():
 
                 for i in range(0,len(result)):
 
-                    tableVar = facilityName.split(" ")
-                    tablename = tableVar[0][0] + tableVar[1][0] + "R" + str(result[i][0])
+                    tablenameRes = tablename + str(result[i][0])
 
                     #Create SQL Query
-                    sql = "SELECT sessionRange FROM {} WHERE date = %s AND status = 'free'".format(tablename)
+                    sql = "SELECT sessionRange, sessionID FROM {} WHERE date = %s AND status = 'free'".format(tablenameRes)
                     sqlVar = (date,)
 
                     #Run SQL Query
@@ -245,10 +250,12 @@ def booking():
                     if result[i][0] == 1:
                         for j in range(0,len(result2)):
                             sessions1.append(result2[j][0])
+                            sessions1ids.append(result2[j][1])
 
                     if result[i][0] == 2:
                         for j in range(0,len(result2)):
                             sessions2.append(result2[j][0])
+                            sessions2ids.append(result2[j][1])
 
                 cur.close()
                 conn.close()
@@ -256,13 +263,18 @@ def booking():
             except mariadb.Error as e:
                 print(f"Error: {e}")
             
-            return render_template('booking2.html', sessions1 = sessions1, sessions2 = sessions2, facilityName = facilityName, facilityID = facilityID, date = date)
+            return render_template('booking2.html', sessions1 = sessions1, sessions2 = sessions2, facilityName = facilityName, facilityID = facilityID, date = date, sessions1ids = sessions1ids, sessions2ids = sessions2ids, tbl = tablename)
 
         if "book1" in request.form:
             date = request.form.get('date')
             session = request.form.get('r1choice')
+            sessionid = request.form.get('r1choiceID')
             facilityID = request.form.get('facilityID')
             resourceNum = request.form.get('resourceNum')
+            tablename = request.form.get('tbl')
+            sessVals = session.split("|")
+            session = sessVals[0]
+            sessionID = sessVals[1]
             getTimes(session)
             times = getTimes(session)
             start = times[0]
@@ -280,6 +292,23 @@ def booking():
                 #Run SQL Query
                 cur.execute(sql, sqlVar)
                 conn.commit()
+
+                #Create SQL Query
+                sql = "SELECT MAX(bookingID) FROM Booking"
+                #Run SQL Query
+                cur.execute(sql,)
+                result = cur.fetchone()
+                bookingID = result[0]
+
+                #Create SQL Query
+                sql = "UPDATE {} SET status = 'booked', bookingID = %s WHERE sessionID = %s".format(tablename)
+                sqlVar = (bookingID, sessionID)
+                print(sql, sqlVar)
+
+                #Run SQL Query
+                cur.execute(sql, sqlVar)
+                conn.commit()
+
                 cur.close()
                 conn.close()
 
@@ -289,8 +318,13 @@ def booking():
         if "book2" in request.form:
             date = request.form.get('date')
             session = request.form.get('r2choice')
+            sessionid = request.form.get('r2choiceID')
             facilityID = request.form.get('facilityID')
             resourceNum = request.form.get('resourceNum')
+            tablename = request.form.get('tbl')
+            sessVals = session.split("|")
+            session = sessVals[0]
+            sessionID = sessVals[1]
             getTimes(session)
             times = getTimes(session)
             start = times[0]
@@ -308,6 +342,23 @@ def booking():
                 #Run SQL Query
                 cur.execute(sql, sqlVar)
                 conn.commit()
+
+                #Create SQL Query
+                sql = "SELECT MAX(bookingID) FROM Booking"
+                #Run SQL Query
+                cur.execute(sql,)
+                result = cur.fetchone()
+                bookingID = result[0]
+
+                #Create SQL Query
+                sql = "UPDATE {} SET status = 'booked', bookingID = %s WHERE sessionID = %s".format(tablename)
+                sqlVar = (bookingID, sessionID)
+                print(sql, sqlVar)
+
+                #Run SQL Query
+                cur.execute(sql, sqlVar)
+                conn.commit()
+
                 cur.close()
                 conn.close()
 
@@ -315,7 +366,7 @@ def booking():
                 print(f"Error: {e}")
 
         
-    return render_template('booking1.html', facilityName = facilitynames, facilityids = facilityids)
+    return render_template('booking1.html', facilityName = facilitynames, facilityids = facilityids, today = dateToday, endRange = nextMonthString)
 
 #View Bookings
 @app.route('/viewbooking', methods = ['post', 'get'])
@@ -342,27 +393,27 @@ def viewbooking():
 
             if (g.user.userType == "admin" and viewRange == 'today'):
                 sql = "SELECT * FROM Booking WHERE useDate = %s"
-                sqlVar = (date,)
+                sqlVar = (dateToday,)
 
             if (g.user.userType == "admin" and viewRange == 'week'):
                 sql = "SELECT * FROM Booking WHERE useDate BETWEEN %s AND %s"
-                sqlVar = (date,nextWeekString)
+                sqlVar = (dateToday,nextWeekString)
 
             if (g.user.userType == "admin" and viewRange == 'month'):
                 sql = "SELECT * FROM Booking WHERE useDate BETWEEN %s AND %s"
-                sqlVar = (date,nextMonthString)
+                sqlVar = (dateToday,nextMonthString)
             
             if (g.user.userType == "member" and viewRange == 'today'):
                 sql = "SELECT * FROM Booking WHERE (useDate = %s) AND WHERE userID = %s"
-                sqlVar = (date, g.user.id)
+                sqlVar = (dateToday, g.user.id)
 
             if (g.user.userType == "member" and viewRange == 'week'):
                 sql = "SELECT * FROM Booking WHERE (useDate BETWEEN %s AND %s) AND WHERE (userID = %s)"
-                sqlVar = (date,nextWeekString, g.user.id)
+                sqlVar = (dateToday,nextWeekString, g.user.id)
 
             if (g.user.userType == "member" and viewRange == 'month'):
                 sql = "SELECT * FROM Booking WHERE (useDate BETWEEN %s AND %s) AND WHERE (userID = %s)"
-                sqlVar = (date,nextMonthString, g.user.id)
+                sqlVar = (dateToday,nextMonthString, g.user.id)
 
             cur.execute(sql,sqlVar)
             result = cur.fetchall()
@@ -872,8 +923,8 @@ def systemlogs():
     readingTime = []
     userids = []
     rfid = []
-    dateString1 = date + " 00:00:00"
-    dateString2 = date + " 23:59:59"
+    dateString1 = dateToday + " 00:00:00"
+    dateString2 = dateToday + " 23:59:59"
     weekString = lastWeekString + " 00:00:00"
     monthString = lastMonthString + " 00:00:00"
 

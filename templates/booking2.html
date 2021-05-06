@@ -19,13 +19,15 @@
         {% endif %}
 
         {% for i in sessions1 %}
-        <option>{{i}}</option>
+        <option value="{{i}}|{{sessions1ids[sessions1.index(i)]}}">{{i}}</option>
         {% endfor %}
     </select>
 
     <input type="hidden" name="date" value="{{date}}">
     <input type="hidden" name="facilityID" value="{{facilityID}}">
     <input type="hidden" name="resourceNum" value="1">
+    <input type="hidden" name="tbl" value="{{tbl}}1">
+
 
     {% if sessions1|length == 0 %}
     <button class="btn btn-primary" type="submit" name="book1" disabled>Place Resource 1 Booking</button>
@@ -46,13 +48,14 @@
         {% endif %}
 
         {% for i in sessions2 %}
-        <option>{{i}}</option>
+        <option value="{{i}}|{{sessions2ids[sessions2.index(i)]}}">{{i}}</option>
         {% endfor %}
     </select>
     
     <input type="hidden" name="date" value="{{date}}">
     <input type="hidden" name="facilityID" value="{{facilityID}}">
     <input type="hidden" name="resourceNum" value="2">
+    <input type="hidden" name="tbl" value="{{tbl}}2">
 
     {% if sessions2|length == 0 %}
     <button class="btn btn-primary" type="submit" name="book2" disabled>Place Resource 2 Booking</button>

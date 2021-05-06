@@ -10,17 +10,11 @@
 <h1 class="section-title">New Booking for {{g.user.firstname}}</h1>
 <form class="form" action="" method="POST" >
 
+    <label for="facilityID">Which facility do you want to use?</label>
     <select id="status" name="facilityID">
-        <option value="" disabled selected>Choose Your Facility</option>
-        {% for i in facilities %}
-        <option value="{{facilityNum[facilities.index(i)]}}">{{i}}</option>
-        {% endfor %}
-    </select>
-
-    <select id="status" name="resourceID">
-        <option value="" disabled selected>Choose Your Resource</option>
-        {% for i in resources %}
-        <option value="{{resourceID[resources.index(i)]}}">{{i}}</option>
+        <option value="" disabled selected>Available Facilities</option>
+        {% for i in facilityName %}
+        <option value="{{facilityids[facilityName.index(i)]}}">{{i}}</option>
         {% endfor %}
     </select>
     

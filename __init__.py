@@ -163,34 +163,94 @@ def booking():
         return redirect('/SFMS/login')
     message = ""
 
+    facilitynames = []
+    facilityids = []
+    resources = []
+    sessions1 = []
+    sessions2 = []
+    
+    try:
+        #Connect to DB
+        conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
+        cur = conn.cursor()
+
+        #Create SQL Query
+        sql = "SELECT facilityName, facilityID FROM Facility"
+
+        #Run SQL Query
+        cur.execute(sql,)
+        result = cur.fetchall()
+
+        for i in range(0,len(result)):
+            facilitynames.append(result[i][0])
+            facilityids.append(result[i][1])
+
+    except mariadb.Error as e:
+                print(f"Error: {e}")
+
     #Retrieve POST Request Data
     if (request.method == 'POST'):
-        facility = request.form.get('facilityID')
-        resource = request.form.get('resourceID')
-        date = request.form.get('date')
-        startTime = request.form.get('startTime')
-        endTime = request.form.get('endTime')
 
-        try:
-            #Connect to DB
-            conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
-            cur = conn.cursor()
+        if "search" in request.form:
+            facilityID = request.form.get('facilityID')
+            dateVar = request.form.get('date')
+            dateVar = dateVar.split("-")
+            date = dateVar[0] + ":" + dateVar[1] + ":" + dateVar[2]
+        
+            try:
+                #Connect to DB
+                conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
+                cur = conn.cursor()
 
-	    #Create SQL Query
-            sql = "INSERT INTO Booking (facilityID, resourceID, useStart, useEnd, useDate, userID) VALUES (%s, %s, %s, %s, %s, %s)"
-            sqlVar = (facility, resource, startTime, endTime, date, g.user.id )
+                #Create SQL Query
+                sql = "SELECT facilityName FROM Facility WHERE facilityID = %s"
+                sqlVar = (facilityID,)
 
-	    #Run SQL Query
-            cur.execute(sql, sqlVar)
-            conn.commit()
-            cur.close()
-            conn.close()
-            message = "Booking Created Successfully"
-            flash(message, "success")
+                #Run SQL Query
+                cur.execute(sql, sqlVar)
+                result = cur.fetchone()
+                facilityName = result[0]
 
-        except mariadb.Error as e:
-            print(f"Error: {e}")
-    return render_template('booking.html')
+                #Create SQL Query
+                sql = "SELECT resourceNumber FROM Resources WHERE facilityID = %s AND status = %s"
+                sqlVar = (facilityID,"Available")
+
+                #Run SQL Query
+                cur.execute(sql, sqlVar)
+                result = cur.fetchall()
+
+                for i in range(0,len(result)):
+
+                    tableVar = facilityName.split(" ")
+                    tablename = tableVar[0][0] + tableVar[1][0] + "R" + str(result[i][0])
+
+                    #Create SQL Query
+                    sql = "SELECT sessionRange FROM {} WHERE date = %s AND status = 'free'".format(tablename)
+                    sqlVar = (date,)
+
+                    #Run SQL Query
+                    cur.execute(sql, sqlVar)
+                    result2 = cur.fetchall()
+
+                    if result[i][0] == 1:
+                        for j in range(0,len(result2)):
+                            sessions1.append(result2[j][0])
+
+                    if result[i][0] == 2:
+                        for j in range(0,len(result2)):
+                            sessions2.append(result2[j][0])
+
+                cur.close()
+                conn.close()
+
+            except mariadb.Error as e:
+                print(f"Error: {e}")
+            
+            return render_template('booking2.html', sessions1 = sessions1, sessions2 = sessions2, facilityName = facilityName)
+
+        # startTime = request.form.get('startTime')
+        # endTime = request.form.get('endTime')
+    return render_template('booking1.html', facilityName = facilitynames, facilityids = facilityids)
 
 #View Bookings
 @app.route('/viewbooking', methods = ['post', 'get'])
@@ -356,18 +416,17 @@ def newFacility():
 
                     tableVar = facilityName.split(" ")
                     tablename = tableVar[0][0] + tableVar[1][0] + "R" + str(resourceNum)
-                    print(tablename)
 
-                    sql = "DROP TABLE IF EXISTS `%s`"
-                    sqlVar = (tablename,)
+                    sql = "DROP TABLE IF EXISTS {}".format(tablename)
+                    
                     #Run SQL Query
-                    cur.execute(sql, sqlVar)
+                    cur.execute(sql,)
                     conn.commit()
 
-                    sql = "CREATE TABLE `%s` (slotID int(11) AUTO_INCREMENT NOT NULL PRIMARY KEY, timeStart time NOT NULL, timeStop time NOT NULL, bookingID int(11), status varchar(10) NOT NULL DEFAULT 'free')"
-                    sqlVar = (tablename,)
+                    sql = "CREATE TABLE {} (slotID int(11) AUTO_INCREMENT NOT NULL PRIMARY KEY, timeStart time NOT NULL, timeStop time NOT NULL, bookingID int(11), status varchar(10) NOT NULL DEFAULT 'free')".format(tablename)
+                    
                     #Run SQL Query
-                    cur.execute(sql, sqlVar)
+                    cur.execute(sql, )
                     conn.commit()
 
                 cur.close()

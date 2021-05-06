@@ -23,11 +23,16 @@
         {% endfor %}
     </select>
 
+    <input type="hidden" name="date" value="{{date}}">
+    <input type="hidden" name="facilityID" value="{{facilityID}}">
+    <input type="hidden" name="resourceNum" value="1">
+
     {% if sessions1|length == 0 %}
     <button class="btn btn-primary" type="submit" name="book1" disabled>Place Resource 1 Booking</button>
     {% else %}
     <button class="btn btn-primary" type="submit" name="book1">Place Resource 1 Booking</button>
     {% endif %}
+
 
 </form>
 <form class="form" action="" method="POST" >
@@ -44,6 +49,10 @@
         <option>{{i}}</option>
         {% endfor %}
     </select>
+    
+    <input type="hidden" name="date" value="{{date}}">
+    <input type="hidden" name="facilityID" value="{{facilityID}}">
+    <input type="hidden" name="resourceNum" value="2">
 
     {% if sessions2|length == 0 %}
     <button class="btn btn-primary" type="submit" name="book2" disabled>Place Resource 2 Booking</button>

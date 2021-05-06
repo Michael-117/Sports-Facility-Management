@@ -34,6 +34,16 @@ def timeLeft(nowTime: str, endTime: str, timeBuffer: str):
     secsLeft = (hrsDiff*3600) + (minsDiff*60) + (secDiff)
     return secsLeft
 
+#Function to determine start and end time for a booking
+def getTimes(session: str):
+    startEnd = []
+    session = session.strip().split("-")
+    start = session[0].rstrip() + ":" + "00"
+    end = session[1] + ":" + "00"
+    startEnd.append(start)
+    startEnd.append(end)
+    return startEnd
+
 #User Class for global variable
 class User:
     def __init__(self, id, username, firstname, userType):
@@ -246,10 +256,65 @@ def booking():
             except mariadb.Error as e:
                 print(f"Error: {e}")
             
-            return render_template('booking2.html', sessions1 = sessions1, sessions2 = sessions2, facilityName = facilityName)
+            return render_template('booking2.html', sessions1 = sessions1, sessions2 = sessions2, facilityName = facilityName, facilityID = facilityID, date = date)
 
-        # startTime = request.form.get('startTime')
-        # endTime = request.form.get('endTime')
+        if "book1" in request.form:
+            date = request.form.get('date')
+            session = request.form.get('r1choice')
+            facilityID = request.form.get('facilityID')
+            resourceNum = request.form.get('resourceNum')
+            getTimes(session)
+            times = getTimes(session)
+            start = times[0]
+            end = times[1]
+
+            try:
+                #Connect to DB
+                conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
+                cur = conn.cursor()
+
+                #Create SQL Query
+                sql = "INSERT INTO `Booking`(`resourceNumber`, `facilityID`, `useStart`, `useEnd`, `useDate`, `userID`) VALUES (%s,%s,%s,%s,%s,%s)"
+                sqlVar = (resourceNum, facilityID, start, end, date, g.user.id)
+
+                #Run SQL Query
+                cur.execute(sql, sqlVar)
+                conn.commit()
+                cur.close()
+                conn.close()
+
+            except mariadb.Error as e:
+                print(f"Error: {e}")
+
+        if "book2" in request.form:
+            date = request.form.get('date')
+            session = request.form.get('r2choice')
+            facilityID = request.form.get('facilityID')
+            resourceNum = request.form.get('resourceNum')
+            getTimes(session)
+            times = getTimes(session)
+            start = times[0]
+            end = times[1]
+
+            try:
+                #Connect to DB
+                conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
+                cur = conn.cursor()
+
+                #Create SQL Query
+                sql = "INSERT INTO `Booking`(`resourceNumber`, `facilityID`, `useStart`, `useEnd`, `useDate`, `userID`) VALUES (%s,%s,%s,%s,%s,%s)"
+                sqlVar = (resourceNum, facilityID, start, end, date, g.user.id)
+
+                #Run SQL Query
+                cur.execute(sql, sqlVar)
+                conn.commit()
+                cur.close()
+                conn.close()
+
+            except mariadb.Error as e:
+                print(f"Error: {e}")
+
+        
     return render_template('booking1.html', facilityName = facilitynames, facilityids = facilityids)
 
 #View Bookings

@@ -9,31 +9,35 @@
             </div>
             <p>
                 <label for="firstname">First Name</label>
-                <input type="text" name="firstname" placeholder="Enter First Name" value="{{request.form.firstname}}">
+                <input type="text" name="firstname" placeholder="Enter First Name" value="{{request.form.firstname}}" required>
             </p>
             <p>
                 <label for="lastname">Last Name</label>
-                <input type="text" name="lastname" placeholder="Enter Last Name" value="{{request.form.lastname}}">
+                <input type="text" name="lastname" placeholder="Enter Last Name" value="{{request.form.lastname}}" required>
             </p>
                         <p>
                 <label for="username">Username</label>
-                <input type="text" name="username" placeholder="Enter Username" value="{{request.form.username}}">
+                <input type="text" name="username" placeholder="Enter Username" value="{{request.form.username}}" required>
             </p>
             <p>
                 <label for="usertype">User Type</label>
-                <input type="text" name="usertype" placeholder="Enter User Type" value="{{request.form.usertype}}">
+                <select name="usertype" required>
+                    <option value="" disabled selected>Choose User Type</option>
+                    <option value="admin">Admin</option>
+                    <option value="member">Member</option>
+                </select>
             </p>
             <p>
                 <label for="useraddress">User Address</label>
-                <input type="text" name="useraddress" placeholder="Enter Address" value="{{request.form.useraddress}}">
+                <input type="text" name="useraddress" placeholder="Enter Address" value="{{request.form.useraddress}}" required>
             </p>
             <p>
                 <label for="useremail">Email Address</label>
-                <input type="text" name="useremail" placeholder="Enter Email Address" value="{{request.form.useremail}}">
+                <input type="text" name="useremail" placeholder="Enter Email Address" value="{{request.form.useremail}}" required>
             </p>
             <p>
                 <label for="telephone">Telephone Number</label>
-                <input type="text" name="telephone" placeholder="Enter Phone Number" value="{{request.form.telephone}}">
+                <input type="text" name="telephone" placeholder="Enter Phone Number" value="{{request.form.telephone}}" required>
             </p>
             <p>
                 <input type="submit" name = "adduser" value="Create User"/>
@@ -46,7 +50,7 @@
             <form action="" method="POST">
                 <p>
                     <label for="username">User to Remove</label>
-                    <select name="username">
+                    <select name="username" required>
                         {% for i in firstname %}
                         <option value="{{username[firstname.index(i)]}}" SELECTED> {{i}} {{lastname[firstname.index(i)]}} || Username - {{username[firstname.index(i)]}}</option>
                         {% endfor %}

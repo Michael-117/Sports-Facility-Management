@@ -716,7 +716,7 @@ def newUser():
             useraddress = request.form.get('useraddress')
             useremail = request.form.get('useremail')
             telephone = request.form.get('telephone')
-            password = firstname + "." + lastname + "_123"
+            password = firstname.lower() + lastname.lower() + "123"
             hashedPassword = hashlib.sha256(password.encode('utf-8')).hexdigest()
 
             try:

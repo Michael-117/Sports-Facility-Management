@@ -1,5 +1,6 @@
 import datetime
 import hashlib
+import math
 
 import mysql.connector as mariadb
 from dateutil.relativedelta import *
@@ -44,6 +45,52 @@ def getTimes(session: str):
     startEnd.append(end)
     return startEnd
 
+#Function to generate the sessions for a resource
+def generateSessions(sessionLength: str, gracePeriod: str, dateToday: str):
+
+    sessionLength = int(sessionLength)
+    gracePeriod = int(gracePeriod)
+    todayVar = dateToday.split("-")
+    baseTime = datetime.datetime(int(todayVar[0]),int(todayVar[1]),int(todayVar[2]),0,0,0)
+    sessions = []
+    times = []
+    startTimes = []
+    endTimes = []
+    dates = []
+    sessionTimes = []
+
+    sessionQuantity = math.floor((24 * 60) / (sessionLength + gracePeriod))
+    times.append(baseTime.strftime("%H:%M"))
+
+    for i in range(0,31):
+        timeVar = baseTime + relativedelta(days=i)
+        dates.append(timeVar.strftime("%Y-%m-%d"))
+
+    for i in range(1, sessionQuantity+1):
+        gen = 0 + (i*(sessionLength + gracePeriod))
+        sessions.append(gen)
+
+    for i in sessions:
+        timeVar = baseTime + relativedelta(minutes=i)
+        times.append(timeVar.strftime("%H:%M"))
+
+    startTimes = times[::2]
+    endTimes = times[1::2]
+
+    endTimes.append(baseTime.strftime("%H:%M"))
+
+    for i in range(0,len(startTimes)-1):
+        sessionTimes.append(startTimes[i] + " - " + endTimes[i])
+
+        if i == len(startTimes):
+            sessionTimes.append(endTimes[i] + " - " + baseTime.strftime("%H:%M"))
+        else:
+            sessionTimes.append(endTimes[i] + " - " + startTimes[i+1])
+
+    return sessionTimes, dates
+
+
+
 #User Class for global variable
 class User:
     def __init__(self, id, username, firstname, userType):
@@ -72,7 +119,6 @@ def before_request():
 
 @app.route('/logout')
 def logout():
-    message = ""
     return redirect('/SFMS/login')
 
 #Base Page
@@ -98,8 +144,7 @@ def errorpage():
 #Login Page
 @app.route('/login', methods=['post', 'get'])
 def login():
-    message = ""
-    error = ""
+
     if(request.method=='POST'):
 
 	#Remove session
@@ -126,8 +171,6 @@ def login():
             result = cur.fetchall()
 
             if not result:
-                error1 = "Invalid Username"
-                flash(error1, "success")
                 return render_template('login.html')
 
 	    #Test for password match
@@ -142,25 +185,19 @@ def login():
                 #Redirect to profile page
                 return redirect('/SFMS/profile')
 
-            error = "Invalid Password"
         except mariadb.Error as e:
             print(f"Error: {e}")
 
-    flash(error, "success")
     return render_template('login.html')
-
-"/SFMS/facilitymanagement"
 
 #Home Page
 @app.route('/')
 def home():
-    message = ""
     return render_template('home.html')
 
 #Profile Page
 @app.route('/profile')
 def profile():
-    message =""
     #Check if there is a user stored in global variable i.e. Someone is logged in
     if not g.user:
         return redirect('/SFMS/login')
@@ -171,7 +208,6 @@ def profile():
 def booking():
     if not g.user:
         return redirect('/SFMS/login')
-    message = ""
 
     facilitynames = []
     facilityids = []
@@ -205,9 +241,7 @@ def booking():
 
         if "search" in request.form:
             facilityID = request.form.get('facilityID')
-            dateVar = request.form.get('date')
-            dateVar = dateVar.split("-")
-            date = dateVar[0] + ":" + dateVar[1] + ":" + dateVar[2]
+            date = request.form.get('date')
             tablename = ""
             tablenameRes = ""
         
@@ -240,7 +274,7 @@ def booking():
                     tablenameRes = tablename + str(result[i][0])
 
                     #Create SQL Query
-                    sql = "SELECT sessionRange, sessionID FROM {} WHERE date = %s AND status = 'free'".format(tablenameRes)
+                    sql = "SELECT sessionRange, slotID FROM {} WHERE date = %s AND status = 'free'".format(tablenameRes)
                     sqlVar = (date,)
 
                     #Run SQL Query
@@ -301,7 +335,7 @@ def booking():
                 bookingID = result[0]
 
                 #Create SQL Query
-                sql = "UPDATE {} SET status = 'booked', bookingID = %s WHERE sessionID = %s".format(tablename)
+                sql = "UPDATE {} SET status = 'booked', bookingID = %s WHERE slotID = %s".format(tablename)
                 sqlVar = (bookingID, sessionID)
                 print(sql, sqlVar)
 
@@ -351,9 +385,8 @@ def booking():
                 bookingID = result[0]
 
                 #Create SQL Query
-                sql = "UPDATE {} SET status = 'booked', bookingID = %s WHERE sessionID = %s".format(tablename)
+                sql = "UPDATE {} SET status = 'booked', bookingID = %s WHERE slotID = %s".format(tablename)
                 sqlVar = (bookingID, sessionID)
-                print(sql, sqlVar)
 
                 #Run SQL Query
                 cur.execute(sql, sqlVar)
@@ -371,6 +404,8 @@ def booking():
 #View Bookings
 @app.route('/viewbooking', methods = ['post', 'get'])
 def viewbooking():
+    if not g.user:
+        return redirect('/SFMS/login')
 
     bookingids = []
     bookingdatetime = []
@@ -458,9 +493,10 @@ def viewbooking():
 #Facility Management
 @app.route('/facilitymanagement', methods=['post','get'])
 def newFacility():
+    if not g.user:
+        return redirect('/SFMS/login')
     if g.user.userType != "admin":
         return redirect('/SFMS/')
-    message = ""
 
     facilities = []
 
@@ -497,6 +533,11 @@ def newFacility():
             status.append(request.form.get('status2'))
             sessionLength = request.form.get('session')
             gracePeriod = request.form.get('grace')
+
+            sessionTimes, dates = generateSessions(sessionLength,gracePeriod, dateToday)
+
+            if (len(facilityName.split()) == 1):
+                facilityName = facilityName.rstrip() + " Facility"
 
             try:
                 #Connect to DB
@@ -539,11 +580,21 @@ def newFacility():
                     cur.execute(sql,)
                     conn.commit()
 
-                    sql = "CREATE TABLE {} (slotID int(11) AUTO_INCREMENT NOT NULL PRIMARY KEY, timeStart time NOT NULL, timeStop time NOT NULL, bookingID int(11), status varchar(10) NOT NULL DEFAULT 'free')".format(tablename)
+                    sql = "CREATE TABLE {} (slotID int(11) AUTO_INCREMENT NOT NULL PRIMARY KEY, sessionRange varchar(255) NOT NULL, bookingID int(11), status varchar(10) NOT NULL DEFAULT 'free', date date NOT NULL)".format(tablename)
                     
                     #Run SQL Query
                     cur.execute(sql, )
                     conn.commit()
+
+                    for i in dates:
+
+                        for j in sessionTimes:
+                            sql = "INSERT INTO {} (sessionRange, date) VALUES (%s, %s)".format(tablename)
+                            sqlVar = (j, i)
+
+                            #Run SQL Query
+                            cur.execute(sql,sqlVar)
+                            conn.commit()
 
                 cur.close()
                 conn.close()
@@ -581,9 +632,16 @@ def newFacility():
 #Resource Management
 @app.route('/resourcemanagement', methods=['post','get'])
 def manageResources():
+    if not g.user:
+        return redirect('/SFMS/login')
     if g.user.userType != "admin":
         return redirect('/SFMS/')
-    message = ""
+
+    facilityName = ""
+    resources = ""
+    resourceNum = ""
+    status = ""
+
 
     if (request.method == 'POST'):
 
@@ -624,7 +682,7 @@ def manageResources():
 
             try:
                 #Connect to DB
-                conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="MealPlanner")
+                conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
                 cur = conn.cursor()
 
                 #Create SQL Query
@@ -648,7 +706,7 @@ def manageResources():
 
             try:
                 #Connect to DB
-                conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="MealPlanner")
+                conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
                 cur = conn.cursor()
 
                 #Create SQL Query
@@ -670,9 +728,10 @@ def manageResources():
 #User Management
 @app.route('/usermanagement', methods=['post','get'])
 def newUser():
+    if not g.user:
+        return redirect('/SFMS/login')
     if g.user.userType != "admin":
         return redirect('/SFMS/')
-    message = ""
 
     fname = []
     lname = []
@@ -698,7 +757,6 @@ def newUser():
             lname.append(result[i][1])
             usernames.append(result[i][2])
 
-        flash(message, "success")
     except mariadb.Error as e:
         print(f"Error: {e}")
 
@@ -733,8 +791,7 @@ def newUser():
                 conn.commit()
                 cur.close()
                 conn.close()
-                message = "User Created Successfully"
-                flash(message, "success")
+
             except mariadb.Error as e:
                 print(f"Error: {e}")
 
@@ -778,7 +835,6 @@ def newUser():
 @app.route('/cardmanagement', methods = ['post', 'get'])
 def assign():
 
-
     #Check if a user is logged in
     if not g.user:
         return redirect('/SFMS/login')
@@ -786,7 +842,6 @@ def assign():
     #Check if logged in user is Admin
     if g.user.userType != "admin":
         return redirect('/SFMS/')
-    message = ""
     users = []
     newcards = []
     usedcards = []
@@ -852,7 +907,6 @@ def assign():
                 #Change the user associated with an RFID card to the user selected on the webpage
                 sql = "UPDATE Cards SET userID = (SELECT userID FROM SFMSUser WHERE username = %s) WHERE cardID = %s"
                 sqlVar = (username, chosenRFID)
-                print(sql, sqlVar)
 
                 #Run SQL Query
                 cur.execute(sql, sqlVar)
@@ -915,6 +969,10 @@ def assign():
 #System Logs
 @app.route('/systemlogs', methods=['post','get'])
 def systemlogs():
+    if not g.user:
+        return redirect('/SFMS/login')
+    if g.user.userType != "admin":
+        return redirect('/SFMS/')
 
     firstName = []
     lastName = []
@@ -939,17 +997,14 @@ def systemlogs():
             if (logRange == 'today'):
                 sql = "SELECT facilityID, rfid, reading_time FROM SensorData WHERE reading_time BETWEEN %s AND %s"
                 sqlVar = (dateString1, dateString2)
-                print("I am here 1", sql, sqlVar)
 
             if (logRange == 'week'):
                 sql = "SELECT facilityID, rfid, reading_time FROM SensorData WHERE reading_time BETWEEN %s AND %s"
                 sqlVar = (weekString, dateString1)
-                print("I am here 2", sql, sqlVar)
 
             if (logRange == 'month'):
                 sql = "SELECT facilityID, rfid, reading_time FROM SensorData WHERE reading_time BETWEEN %s AND %s"
                 sqlVar = (monthString, dateString1)
-                print("I am here 3", sql, sqlVar)
             
 
             #Run SQL Query
@@ -993,8 +1048,6 @@ def systemlogs():
                 cur.close()
                 conn.close()
 
-                print(result)
-
                 for j in range(0,len(result)):
                     firstName.append(result[j][0])
                     lastName.append(result[j][1])
@@ -1025,7 +1078,6 @@ def systemlogs():
 @app.route('/verify', methods=['post', 'get'])
 def verifyBooking():
 
-    message = ""
     today = datetime.date.today().strftime("%Y-%m-%d")
     now = datetime.datetime.today().time()
 
@@ -1071,7 +1123,6 @@ def verifyBooking():
             resource = result[-1][0]
             timeVar = timeLeft(nowVar, endVar)
 
-            print (result)
             if (start <= now) and (now <= end):
                 message = "1," + str(resource) + "," + str(timeVar)
             else:

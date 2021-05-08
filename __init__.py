@@ -461,81 +461,118 @@ def viewbooking():
     usedate = []
     userids = []
     usernames = []
+    status = []
 
 
     if(request.method == 'POST'):
-        viewRange = request.form.get('range')
 
-        try:
-            #Connect to DB
-            conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
-            cur = conn.cursor()
+        if 'viewBooking' in request.form:
+            viewRange = request.form.get('range')
 
-            if (g.user.userType == "admin" and viewRange == 'today'):
-                sql = "SELECT * FROM Booking WHERE useDate = %s"
-                sqlVar = (dateToday,)
+            try:
+                #Connect to DB
+                conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
+                cur = conn.cursor()
 
-            if (g.user.userType == "admin" and viewRange == 'week'):
-                sql = "SELECT * FROM Booking WHERE useDate BETWEEN %s AND %s"
-                sqlVar = (dateToday,nextWeekString)
+                if (g.user.userType == "admin" and viewRange == 'today'):
+                    sql = "SELECT * FROM Booking WHERE useDate = %s"
+                    sqlVar = (dateToday,)
 
-            if (g.user.userType == "admin" and viewRange == 'month'):
-                sql = "SELECT * FROM Booking WHERE useDate BETWEEN %s AND %s"
-                sqlVar = (dateToday,nextMonthString)
-            
-            if (g.user.userType == "member" and viewRange == 'today'):
-                sql = "SELECT * FROM Booking WHERE (useDate = %s) AND WHERE userID = %s"
-                sqlVar = (dateToday, g.user.id)
+                if (g.user.userType == "admin" and viewRange == 'week'):
+                    sql = "SELECT * FROM Booking WHERE useDate BETWEEN %s AND %s"
+                    sqlVar = (dateToday,nextWeekString)
 
-            if (g.user.userType == "member" and viewRange == 'week'):
-                sql = "SELECT * FROM Booking WHERE (useDate BETWEEN %s AND %s) AND (userID = %s)"
-                sqlVar = (dateToday,nextWeekString, g.user.id)
+                if (g.user.userType == "admin" and viewRange == 'month'):
+                    sql = "SELECT * FROM Booking WHERE useDate BETWEEN %s AND %s"
+                    sqlVar = (dateToday,nextMonthString)
+                
+                if (g.user.userType == "member" and viewRange == 'today'):
+                    sql = "SELECT * FROM Booking WHERE (useDate = %s) AND WHERE userID = %s"
+                    sqlVar = (dateToday, g.user.id)
 
-            if (g.user.userType == "member" and viewRange == 'month'):
-                sql = "SELECT * FROM Booking WHERE (useDate BETWEEN %s AND %s) AND (userID = %s)"
-                sqlVar = (dateToday,nextMonthString, g.user.id)
+                if (g.user.userType == "member" and viewRange == 'week'):
+                    sql = "SELECT * FROM Booking WHERE (useDate BETWEEN %s AND %s) AND (userID = %s)"
+                    sqlVar = (dateToday,nextWeekString, g.user.id)
 
-            cur.execute(sql,sqlVar)
-            result = cur.fetchall()
+                if (g.user.userType == "member" and viewRange == 'month'):
+                    sql = "SELECT * FROM Booking WHERE (useDate BETWEEN %s AND %s) AND (userID = %s)"
+                    sqlVar = (dateToday,nextMonthString, g.user.id)
 
-            for i in range(0,len(result)):
-                bookingids.append(result[i][0])
-                bookingdatetime.append(result[i][1])
-                resourceNums.append(result[i][2])
-                facilityids.append(result[i][3])
-                starttimes.append(result[i][4])
-                endtimes.append(result[i][5])
-                usedate.append(result[i][6])
-                userids.append(result[i][7])
-
-            for i in range(0, len(userids)):
-                sql = "SELECT username from SFMSUser WHERE userID = %s"
-                sqlVar = (userids[i],)
                 cur.execute(sql,sqlVar)
-                result = cur.fetchone()
-                usernames.append(result[0])
+                result = cur.fetchall()
 
-            for i in range(0, len(resourceNums)):
-                sql = "SELECT resourceName from Resources WHERE facilityID = %s AND resourceNumber = %s"
-                sqlVar = (facilityids[i], resourceNums[i],)
-                cur.execute(sql,sqlVar)
-                result = cur.fetchone()
-                resourcenames.append(result[0])
+                for i in range(0,len(result)):
+                    bookingids.append(result[i][0])
+                    bookingdatetime.append(result[i][1])
+                    resourceNums.append(result[i][2])
+                    facilityids.append(result[i][3])
+                    starttimes.append(result[i][4])
+                    endtimes.append(result[i][5])
+                    usedate.append(result[i][6])
+                    userids.append(result[i][7])
+                    status.append(result[i][8])
 
-            for i in range(0, len(facilityids)):
-                sql = "SELECT facilityName from Facility WHERE facilityID = %s"
-                sqlVar = (facilityids[i],)
-                cur.execute(sql,sqlVar)
-                result = cur.fetchone()
-                facilitynames.append(result[0])
+                for i in range(0, len(userids)):
+                    sql = "SELECT username from SFMSUser WHERE userID = %s"
+                    sqlVar = (userids[i],)
+                    cur.execute(sql,sqlVar)
+                    result = cur.fetchone()
+                    usernames.append(result[0])
 
-            cur.close()
-            conn.close()
+                for i in range(0, len(resourceNums)):
+                    sql = "SELECT resourceName from Resources WHERE facilityID = %s AND resourceNumber = %s"
+                    sqlVar = (facilityids[i], resourceNums[i],)
+                    cur.execute(sql,sqlVar)
+                    result = cur.fetchone()
+                    resourcenames.append(result[0])
 
-        except mariadb.Error as e:
-            print(f"Error: {e}")
+                for i in range(0, len(facilityids)):
+                    sql = "SELECT facilityName from Facility WHERE facilityID = %s"
+                    sqlVar = (facilityids[i],)
+                    cur.execute(sql,sqlVar)
+                    result = cur.fetchone()
+                    facilitynames.append(result[0])
 
-    return render_template('manageBooking.html', bookingids = bookingids, bookingdatetime = bookingdatetime, resourcenames = resourcenames, facilitynames = facilitynames, starttimes = starttimes, endtimes = endtimes, usedate = usedate, usernames = usernames)
+                cur.close()
+                conn.close()
+
+            except mariadb.Error as e:
+                print(f"Error: {e}")
+
+        if 'cancel' in request.form:
+            bookingID = request.form.get('bookingid')
+            resourceNum = request.form.get('recNum')
+            facilityName = request.form.get('facName')
+
+            tableVar = facilityName.split(" ")
+            tablename = tableVar[0][0] + tableVar[1][0] + "R" + str(resourceNum)
+
+            try:
+                #Connect to DB
+                conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
+                cur = conn.cursor()
+
+                sql = "UPDATE Booking SET status = 'Cancelled' WHERE bookingID = %s"
+                sqlVar = (bookingID,)
+                cur.execute(sql, sqlVar)
+                conn.commit()
+
+                sql = "UPDATE {} SET status = 'free', bookingID = NULL WHERE bookingID = %s".format(tablename)
+                sqlVar = (bookingID,)
+                cur.execute(sql, sqlVar)
+                conn.commit()
+
+                cur.close()
+                conn.close()
+
+            except mariadb.Error as e:
+                print(f"Error: {e}")
+
+
+
+
+
+    return render_template('manageBooking.html', bookingids = bookingids, bookingdatetime = bookingdatetime, resourcenames = resourcenames, facilitynames = facilitynames, starttimes = starttimes, endtimes = endtimes, usedate = usedate, usernames = usernames, resourceNums = resourceNums, status = status)
 
 
 #Facility Management

@@ -89,19 +89,44 @@
                 </div>
                 <div class="col-75">
                     <select name="username" required>
+                        <option value="" disabled selected> Select A User to Deactivate or Remove</option>
                         {% for i in firstname %}
-                        <option value="{{username[firstname.index(i)]}}" SELECTED> {{i}} {{lastname[firstname.index(i)]}} || Username - {{username[firstname.index(i)]}}</option>
+                        <option value="{{username[firstname.index(i)]}}"> {{i}} {{lastname[firstname.index(i)]}} || Username - {{username[firstname.index(i)]}}</option>
                         {% endfor %}
                     </select>
                 </div>
 
             </div>
             <div class="row">
-                <input type="submit" name="deactivate" value = "Remove User">
+                <input type="submit" name="deactivate" value = "Deactivate User">
             </div>
-
+            <div class="row">
+                <input type="submit" name="remove" value = "Remove User From System">
+            </div>
+            
         </form>
     </div>
+    <div class="container">
+        <form action="" method="POST">
+            <div class="row">
+                <div class="col-25">
+                    <label for="username">User to Reactivate</label>
+                </div>
+                <div class="col-75">
+                    <select name="username" required>
+                        <option value="" disabled selected> Select A User to Reactivate </option>
+                        {% for i in firstname2 %}
+                        <option value="{{username2[firstname2.index(i)]}}"> {{i}} {{lastname2[firstname2.index(i)]}} || Username - {{username2[firstname2.index(i)]}}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <input type="submit" name="activate" value = "Reactivate User">
+            </div>
+        </form>
+    </div>
+
 
     
 

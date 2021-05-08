@@ -835,6 +835,9 @@ def newUser():
     fname = []
     lname = []
     usernames = []
+    fname2 = []
+    lname2 = []
+    usernames2 = []
 
     try:
         #Connect to DB
@@ -842,7 +845,19 @@ def newUser():
         cur = conn.cursor()
 
         #Create SQL Query
-        sql = "SELECT firstName, lastName, username FROM SFMSUser WHERE userType != 'admin' AND userType != 'SYSTEM' AND status != 'inactive'"
+        sql = "SELECT firstName, lastName, username FROM SFMSUser WHERE userType != 'SYSTEM' AND status = 'active'"
+
+        #Run SQL Query
+        cur.execute(sql,)
+        result = cur.fetchall()
+
+        for i in range(0,len(result)):
+            fname.append(result[i][0])
+            lname.append(result[i][1])
+            usernames.append(result[i][2])
+
+        #Create SQL Query
+        sql = "SELECT firstName, lastName, username FROM SFMSUser WHERE userType != 'SYSTEM' AND status = 'inactive'"
 
         #Run SQL Query
         cur.execute(sql,)
@@ -850,16 +865,13 @@ def newUser():
         cur.close()
         conn.close()
 
-
         for i in range(0,len(result)):
-            fname.append(result[i][0])
-            lname.append(result[i][1])
-            usernames.append(result[i][2])
+            fname2.append(result[i][0])
+            lname2.append(result[i][1])
+            usernames2.append(result[i][2])
 
     except mariadb.Error as e:
         print(f"Error: {e}")
-
-    
     
     #Retrieve POST Request Data
     if (request.method == 'POST'): 
@@ -927,8 +939,64 @@ def newUser():
 
             return redirect('/SFMS/usermanagement')
 
+        if "remove" in request.form:
 
-    return render_template("manageUser.html", firstname = fname, lastname = lname, username = usernames)
+            username = request.form.get('username')
+
+            try:
+                #Connect to DB
+                conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
+                cur = conn.cursor()
+
+                #Create SQL Query
+                sql = "DELETE FROM SFMSUser WHERE username = %s"
+                sqlVar = (username,)
+
+                #Run SQL Query
+                cur.execute(sql, sqlVar)
+                conn.commit()
+
+                sql = "UPDATE Cards SET userID = 0 WHERE userID = (SELECT userID FROM SFMSUser WHERE username = %s)"
+                sqlVar = (username,)
+
+                #Run SQL Query
+                cur.execute(sql, sqlVar)
+                conn.commit()
+                cur.close()
+                conn.close()
+
+            except mariadb.Error as e:
+                print(f"Error: {e}")
+
+            return redirect('/SFMS/usermanagement')
+
+        if "activate" in request.form:
+
+            username = request.form.get('username')
+
+            try:
+                #Connect to DB
+                conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
+                cur = conn.cursor()
+
+                #Create SQL Query
+                sql = "UPDATE SFMSUser SET status = %s WHERE username = %s"
+                sqlVar = ("active",username)
+
+                #Run SQL Query
+                cur.execute(sql, sqlVar)
+                conn.commit()
+
+                cur.close()
+                conn.close()
+
+            except mariadb.Error as e:
+                print(f"Error: {e}")
+
+            return redirect('/SFMS/usermanagement')
+
+
+    return render_template("manageUser.html", firstname = fname, lastname = lname, username = usernames, firstname2 = fname2, lastname2 = lname2, username2 = usernames2)
 
 #Assign RFID Card to Member
 @app.route('/cardmanagement', methods = ['post', 'get'])

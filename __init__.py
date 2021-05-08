@@ -535,7 +535,7 @@ def viewbooking():
         except mariadb.Error as e:
             print(f"Error: {e}")
 
-    return render_template('viewBooking.html', bookingids = bookingids, bookingdatetime = bookingdatetime, resourcenames = resourcenames, facilitynames = facilitynames, starttimes = starttimes, endtimes = endtimes, usedate = usedate, usernames = usernames)
+    return render_template('manageBooking.html', bookingids = bookingids, bookingdatetime = bookingdatetime, resourcenames = resourcenames, facilitynames = facilitynames, starttimes = starttimes, endtimes = endtimes, usedate = usedate, usernames = usernames)
 
 
 #Facility Management
@@ -675,7 +675,7 @@ def newFacility():
 
             return redirect('/SFMS/facilitymanagement')
 
-    return render_template("facilitymanagement.html", facilities = facilities)
+    return render_template("manageFacility.html", facilities = facilities)
 
 #Resource Management
 @app.route('/resourcemanagement', methods=['post','get'])
@@ -771,7 +771,7 @@ def manageResources():
                 print(f"Error: {e}")
             return redirect('/SFMS/resourcemanagement')
 
-    return render_template('manageresource.html', facilityName = facilityName, resources = resources, resourceNum = resourceNum, status = status)
+    return render_template('manageResource.html', facilityName = facilityName, resources = resources, resourceNum = resourceNum, status = status)
 
 #User Management
 @app.route('/usermanagement', methods=['post','get'])
@@ -877,7 +877,7 @@ def newUser():
             return redirect('/SFMS/usermanagement')
 
 
-    return render_template("createuser.html", firstname = fname, lastname = lname, username = usernames)
+    return render_template("manageUser.html", firstname = fname, lastname = lname, username = usernames)
 
 #Assign RFID Card to Member
 @app.route('/cardmanagement', methods = ['post', 'get'])
@@ -1012,7 +1012,7 @@ def assign():
                 print(f"Error: {e}")
 
 
-    return render_template("registercard.html", users = users, newcards = newcards, usedcards = usedcards)
+    return render_template("manageCard.html", users = users, newcards = newcards, usedcards = usedcards)
 
 #System Logs
 @app.route('/systemlogs', methods=['post','get'])
@@ -1107,7 +1107,7 @@ def systemlogs():
         except mariadb.Error as e:
             print(f"Error: {e}")
 
-    return render_template('systemlogs.html', firstName = firstName, lastName = lastName ,facilityName = facilityName, readingTime = readingTime)
+    return render_template('systemLog.html', firstName = firstName, lastName = lastName ,facilityName = facilityName, readingTime = readingTime)
 
 
 #Verify Booking

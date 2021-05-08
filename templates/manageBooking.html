@@ -41,16 +41,15 @@
                 {% if g.user.userType == 'admin' %}
                 <th> Username </th>
                 {% endif %}
-                <th> Cancel Booking </th>
             </tr>
         </thead>
 
         {% for i in bookingids %}
         <tr>
-            <td><input type="hidden" name= "bookingid" value="{{i}}"> {{i}} </td>
+            <td> {{i}} </td>
             <td> {{bookingdatetime[bookingids.index(i)]}} </td>
             <td> {{resourcenames[bookingids.index(i)]}} </td>
-            <td><input type="hidden" name="facName" value="{{facilitynames[bookingids.index(i)]}}">{{facilitynames[bookingids.index(i)]}} </td>
+            <td> {{facilitynames[bookingids.index(i)]}} </td>
             <td> {{starttimes[bookingids.index(i)]}} </td>
             <td> {{endtimes[bookingids.index(i)]}} </td>
             <td> {{usedate[bookingids.index(i)]}} </td>
@@ -58,11 +57,35 @@
             {% if g.user.userType == 'admin' %}
             <td> {{usernames[bookingids.index(i)]}} </td>
             {% endif %}
-            <input type="hidden" name="recNum" value="{{resourceNums[bookingids.index(i)]}}">
-            <td><input type="submit" value="Cancel Booking" name="cancel"></td>
         </tr>
         {% endfor %}
     </table>
 </form>
+
+<div class="container">
+    <form action="" method = 'POST'> 
+        <div class="row">
+            <div class="col-25">
+                <label for="dropdown">Cancel a Booking:</label>
+            </div>
+
+            <div class="col-75">
+                <select name="bookingid" >
+                    <option value="" selected disabled> Select Booking ID to Cancel</option>
+                    {% for i in bookingids %}
+                        {% if status[bookingids.index(i)] == 'Upcoming' %}
+                            <option value="{{i}}">Booking ID: {{i}}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+
+        </div>
+        <div class="row">
+            <input type="submit" value ="Submit" name="cancel">
+        </div>
+    </form>
+</div>
+
 {% endblock %}
 

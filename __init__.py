@@ -541,16 +541,31 @@ def viewbooking():
 
         if 'cancel' in request.form:
             bookingID = request.form.get('bookingid')
-            resourceNum = request.form.get('recNum')
-            facilityName = request.form.get('facName')
-
-            tableVar = facilityName.split(" ")
-            tablename = tableVar[0][0] + tableVar[1][0] + "R" + str(resourceNum)
 
             try:
                 #Connect to DB
                 conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
                 cur = conn.cursor()
+                
+
+
+                sql = "SELECT facilityID, resourceNumber FROM Booking WHERE bookingID = %s"
+                sqlVar = (bookingID,)
+                print(sql,sqlVar)
+                cur.execute(sql, sqlVar)
+                result = cur.fetchone()
+                print(result)
+
+                resourceNum = result[1]
+
+                sql = "SELECT facilityName FROM Facility WHERE facilityID = %s"
+                sqlVar = (result[0],)
+                cur.execute(sql, sqlVar)
+                facilityName = cur.fetchone()
+
+                tableVar = facilityName[0].split(" ")
+                tablename = tableVar[0][0] + tableVar[1][0] + "R" + str(resourceNum)
+
 
                 sql = "UPDATE Booking SET status = 'Cancelled' WHERE bookingID = %s"
                 sqlVar = (bookingID,)
@@ -560,6 +575,7 @@ def viewbooking():
                 sql = "UPDATE {} SET status = 'free', bookingID = NULL WHERE bookingID = %s".format(tablename)
                 sqlVar = (bookingID,)
                 cur.execute(sql, sqlVar)
+                print(sql, sqlVar)
                 conn.commit()
 
                 cur.close()
@@ -568,9 +584,7 @@ def viewbooking():
             except mariadb.Error as e:
                 print(f"Error: {e}")
 
-
-
-
+            return redirect('/SFMS/viewbooking')
 
     return render_template('manageBooking.html', bookingids = bookingids, bookingdatetime = bookingdatetime, resourcenames = resourcenames, facilitynames = facilitynames, starttimes = starttimes, endtimes = endtimes, usedate = usedate, usernames = usernames, resourceNums = resourceNums, status = status)
 
@@ -1173,7 +1187,7 @@ def verifyBooking():
             conn.commit()
 
             #Create SQL Query to check for a booking
-            sql = "SELECT resourceID, useStart, useEnd FROM Booking WHERE userID = (SELECT userID FROM Cards WHERE cardID = %s) AND useDate = %s AND facilityID = %s"
+            sql = "SELECT resourceID, useStart, useEnd FROM Booking WHERE userID = (SELECT userID FROM Cards WHERE cardID = %s) AND useDate = %s AND facilityID = %s AND status = 'Upcoming'"
             sqlVar = (rfid, today, facility)
 
             #Run SQL Query

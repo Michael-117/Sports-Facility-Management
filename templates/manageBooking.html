@@ -2,7 +2,7 @@
 
 {% block main%}
 <div class = "bookings"> 
-    <div> Bookings </div>
+    <div>Booking</div>
 </div>
 
 <div class="container">
@@ -22,15 +22,11 @@
 
         </div>
         <div class="row">
-            <input type="submit" value ="Submit">
+            <input type="submit" value ="Submit" name="viewBooking">
         </div>
-
-        
     </form>
 </div>
-
-
-   
+<form action="" method="POST">
     <table> 
         <thead>
             <tr>
@@ -41,28 +37,32 @@
                 <th> Start Time </th>
                 <th> End Time </th>
                 <th> Use Date </th>
-              
+                <th> Status </th>
+                {% if g.user.userType == 'admin' %}
+                <th> Username </th>
+                {% endif %}
+                <th> Cancel Booking </th>
             </tr>
         </thead>
+
         {% for i in bookingids %}
-
         <tr>
-
-            <td> {{i}} </td>
+            <td><input type="hidden" name= "bookingid" value="{{i}}"> {{i}} </td>
             <td> {{bookingdatetime[bookingids.index(i)]}} </td>
             <td> {{resourcenames[bookingids.index(i)]}} </td>
-            <td> {{facilitynames[bookingids.index(i)]}} </td>
+            <td><input type="hidden" name="facName" value="{{facilitynames[bookingids.index(i)]}}">{{facilitynames[bookingids.index(i)]}} </td>
             <td> {{starttimes[bookingids.index(i)]}} </td>
             <td> {{endtimes[bookingids.index(i)]}} </td>
             <td> {{usedate[bookingids.index(i)]}} </td>
-       
+            <td> {{status[bookingids.index(i)]}} </td>
+            {% if g.user.userType == 'admin' %}
+            <td> {{usernames[bookingids.index(i)]}} </td>
+            {% endif %}
+            <input type="hidden" name="recNum" value="{{resourceNums[bookingids.index(i)]}}">
+            <td><input type="submit" value="Cancel Booking" name="cancel"></td>
         </tr>
         {% endfor %}
     </table>
-
-
-
-
-
-
+</form>
 {% endblock %}
+

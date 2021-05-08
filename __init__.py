@@ -1062,6 +1062,27 @@ def assign():
             except mariadb.Error as e:
                 print(f"Error: {e}")
 
+        if 'delete' in request.form:
+            rfid = request.form.get('deleteCard')
+            try:
+                #Connect to DB
+                conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
+                cur = conn.cursor()
+
+                #Change the user associated with an RFID card to the user selected on the webpage
+                sql = "DELETE FROM Cards WHERE cardID = %s"
+                sqlVar = (rfid,)
+
+                #Run SQL Query
+                cur.execute(sql, sqlVar)
+                conn.commit()
+                cur.close()
+                conn.close()
+                return redirect('/SFMS/cardmanagement')
+
+            except mariadb.Error as e:
+                print(f"Error: {e}")
+
 
     return render_template("manageCard.html", users = users, newcards = newcards, usedcards = usedcards)
 

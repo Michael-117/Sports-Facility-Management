@@ -27,8 +27,9 @@
             </div>
             <div class="col-75">
                 <select name = "username" method="GET" action="">
+                    <option value="" disabled selected> Pick a User</option>
                     {% for username in users %}
-                    <option value = "{{username}}" SELECTED> {{username}}</option>"
+                    <option value = "{{username}}"> {{username}}</option>"
                     {% endfor %}
                 </select>
             </div>
@@ -41,8 +42,9 @@
             </div>
             <div class="col-75">
                 <select name = "newcards" method="GET" action="">
+                    <option value="" disabled selected> Pick a New Card</option>
                     {% for cards in newcards %}
-                    <option value = "{{cards}}" SELECTED> {{cards}}</option>"
+                    <option value = "{{cards}}"> {{cards}}</option>"
                     {% endfor %}
                 </select>
             </div>
@@ -58,8 +60,9 @@
             </div>
             <div class="col-75">
                 <select name = "usedcards" method="GET" action="">
+                    <option value="" disabled selected> Reassign a Used Card</option>
                     {% for cards in usedcards %}
-                    <option value = "{{cards}}" SELECTED> {{cards}}</option>"
+                    <option value = "{{cards}}"> {{cards}}</option>"
                     {% endfor %}
                 </select>
             </div>
@@ -68,7 +71,29 @@
 
         <div class="row">
             <input type="submit" name="reassign" value="Reassign Card">
-        </div>    
+        </div> 
+
+        <div class="row">
+            <div class="col-25">
+                <label for="deleteCard">Cards in System:</label>
+            </div>
+            <div class="col-75">
+                <select name = "deleteCard" method="GET" action="">
+                    <option value="" disabled selected> Delete a Card</option>
+                    {% for cards in newcards %}
+                    <option value = "{{cards}}"> {{cards}}</option>"
+                    {% endfor %}
+                    {% for cards in usedcards %}
+                    <option value = "{{cards}}"> {{cards}}</option>"
+                    {% endfor %}
+                </select>
+            </div>
+
+        </div>
+
+        <div class="row">
+            <input type="submit" name="delete" value="Remove Card">
+        </div>     
 </div>
 
 

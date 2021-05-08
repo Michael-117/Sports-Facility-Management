@@ -3,23 +3,37 @@
 {% block main %}
 {% include 'flash_messages.html' %}
 
-<div class="login">
+<div class="container">
     <form action="" method="POST">
         
         <div class="imgcontainer">
             <img src="/SFMS/static/css/login.png" alt="login" class="avatar">
         </div>
-        <p>
-            <label for="username">Username</label>
-            <input type="text" name="username" placeholder="Enter Username" value="{{request.form.username}}">
-        </p>
-        <p>
-            <label for="password">Password</label>
-            <input type="password" name="password" placeholder="Enter Password" value="{{request.form.password}}">
-        </p>
-        <p>
-            <input type="submit" value="Login"/>
-        </p>
+        <div class="row">
+            <div class="col-25">
+                <label for="username">Username</label>
+            </div>
+
+            <div class="col-75">
+                <input type="text" name="username" placeholder="Enter Username" value="{{request.form.username}}">
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-25">
+                <label for="password">Password</label>
+            </div>
+
+            <div class="col-75">
+                <input type="password" name="password" placeholder="Enter Password" value="{{request.form.password}}">
+            </div>
+        </div>
+        <div>
+            <div class="row">
+                <input type="submit" value="Login"/>
+            </div>
+        </div>
+
     </form>
 </div>
 

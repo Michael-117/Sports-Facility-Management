@@ -5,16 +5,24 @@
     <div> System Log Report </div>
 </div>
 
-<form method = "POST">
-<div class = "dropdown"> 
-    <select name="range" id="range">
-        <option value="today">Today</option>
-        <option value="week">Week</option>
-        <option value="month">Month</option>
-    </select>
+<div class="container">
+    <form method = "POST">
+        <div>
+            <div class="col-75">
+                <select name="range" id="range">
+                    <option value="today">Today</option>
+                    <option value="week">Week</option>
+                    <option value="month">Month</option>
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <input type="submit" value="Search"/>
+        </div>
+
+    </form>
 </div>
-<input type="submit" value="Search"/>
-</form>
+
 
  
     <table> 

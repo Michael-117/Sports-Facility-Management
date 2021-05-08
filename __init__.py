@@ -1,28 +1,86 @@
+"""
+                    Table of Contents
+------------------------------------------------------
+------------------------------------------------------
+Imports                     =           Lines
+Global Variables            =           Lines
+
+                        Classes                   
+---------------------------------------------------
+User class                  =           Lines 
+
+                    Helper Functions
+---------------------------------------------------
+timeLeft function           =           Lines 
+getTimes function           =           Lines 
+generateSessions function   =           Lines 
+---------------------------------------------------
+
+                    App Functions
+---------------------------------------------------
+app.before_request          =           Lines 
+Logout                      =           Lines 
+Base                        =           Lines 
+Header                      =           Lines 
+Footer                      =           Lines 
+ErrorPage                   =           Lines 
+Login                       =           Lines 
+Home                        =           Lines 
+Profile                     =           Lines 
+Booking                     =           Lines 
+View Booking                =           Lines
+Facility Management         =           Lines 
+Resource Management         =           Lines
+User Management             =           Lines  
+Card Management             =           Lines 
+System Logs                 =           Lines 
+Verify Booking              =           Lines 
+"""
+
+"""Imports"""
+
 import datetime
 import hashlib
 import math
-
 import mysql.connector as mariadb
 from dateutil.relativedelta import *
 from flask import Flask, flash, g, redirect, render_template, request, session
-from flask_wtf import FlaskForm
-from wtforms import (Form, StringField, SubmitField, TextAreaField, TextField,
-                     validators)
-from wtforms.validators import InputRequired
+
+"""Global Variables"""
 
 now = datetime.datetime.now()
-dateToday = now.strftime("%Y-%m-%d")
-
+lastMonth = now - relativedelta(months=1)
+lastWeek = now - relativedelta(weeks=1)
+dateTomorrow = now + relativedelta(days=1)
 nextWeek = now + relativedelta(weeks=1)
 nextMonth = now + relativedelta(months=1)
+lastMonthString = lastMonth.strftime("%Y-%m-%d")
+lastWeekString = lastWeek.strftime("%Y-%m-%d")
+dateToday = now.strftime("%Y-%m-%d")
+#dateTomorrowString = dateTomorrow.strftime("%Y-%m-%d")
 nextWeekString = nextWeek.strftime("%Y-%m-%d")
 nextMonthString = nextMonth.strftime("%Y-%m-%d")
+timeNow = now.strftime("%H:%M:%S")
+timeNow2 = now.strftime("%H:%M")
+users = []
+app = Flask(__name__)
+app.secret_key = "12345"
 
-lastWeek = now - relativedelta(weeks=1)
-lastMonth = now - relativedelta(months=1)
-lastWeekString = lastWeek.strftime("%Y-%m-%d")
-lastMonthString = lastMonth.strftime("%Y-%m-%d")
 
+"""Classes"""
+
+#User Class for global variable
+class User:
+    def __init__(self, id, username, firstname, userType):
+        self.id = id
+        self.username = username
+        self.firstname = firstname
+        self.userType = userType
+
+    def __repr__(self):
+        return f'<User: {self.username}>'
+
+"""Helper Functions"""
 
 #Function to calculate time remaining for a booking based off current time, booking end time and a preset grace period
 def timeLeft(nowTime: str, endTime: str, timeBuffer: str):
@@ -31,7 +89,6 @@ def timeLeft(nowTime: str, endTime: str, timeBuffer: str):
     hrsDiff = int(endVals[0]) - int(nowVals[0])
     minsDiff = int(endVals[1]) - int(nowVals[1]) + int(timeBuffer)
     secDiff = int(endVals[2]) - int(nowVals[2])
-
     secsLeft = (hrsDiff*3600) + (minsDiff*60) + (secDiff)
     return secsLeft
 
@@ -88,30 +145,14 @@ def generateSessions(sessionLength: str, gracePeriod: str, dateToday: str):
             sessionTimes.append(endTimes[i] + " - " + startTimes[i+1])
 
     return sessionTimes, dates
+    
 
-
-
-#User Class for global variable
-class User:
-    def __init__(self, id, username, firstname, userType):
-        self.id = id
-        self.username = username
-        self.firstname = firstname
-        self.userType = userType
-
-    def __repr__(self):
-        return f'<User: {self.username}>'
-
-users = []
-
-app = Flask(__name__)
-app.secret_key = "12345"
+"""App Functions"""
 
 #Check for session before each request, create global variable with logged in user for use with other pages on domain
 @app.before_request
 def before_request():
     g.user = None
-
     if 'user_ID' in session:
         for x in users:
             if x.id == session['user_ID']:
@@ -232,6 +273,9 @@ def booking():
         for i in range(0,len(result)):
             facilitynames.append(result[i][0])
             facilityids.append(result[i][1])
+        
+        cur.close()
+        conn.close()
 
     except mariadb.Error as e:
                 print(f"Error: {e}")
@@ -337,7 +381,6 @@ def booking():
                 #Create SQL Query
                 sql = "UPDATE {} SET status = 'booked', bookingID = %s WHERE slotID = %s".format(tablename)
                 sqlVar = (bookingID, sessionID)
-                print(sql, sqlVar)
 
                 #Run SQL Query
                 cur.execute(sql, sqlVar)
@@ -409,13 +452,15 @@ def viewbooking():
 
     bookingids = []
     bookingdatetime = []
-    resourceids = []
+    resourceNums = []
     resourcenames = []
     facilityids = []
     facilitynames = []
     starttimes = []
     endtimes = []
     usedate = []
+    userids = []
+    usernames = []
 
 
     if(request.method == 'POST'):
@@ -443,51 +488,54 @@ def viewbooking():
                 sqlVar = (dateToday, g.user.id)
 
             if (g.user.userType == "member" and viewRange == 'week'):
-                sql = "SELECT * FROM Booking WHERE (useDate BETWEEN %s AND %s) AND WHERE (userID = %s)"
+                sql = "SELECT * FROM Booking WHERE (useDate BETWEEN %s AND %s) AND (userID = %s)"
                 sqlVar = (dateToday,nextWeekString, g.user.id)
 
             if (g.user.userType == "member" and viewRange == 'month'):
-                sql = "SELECT * FROM Booking WHERE (useDate BETWEEN %s AND %s) AND WHERE (userID = %s)"
+                sql = "SELECT * FROM Booking WHERE (useDate BETWEEN %s AND %s) AND (userID = %s)"
                 sqlVar = (dateToday,nextMonthString, g.user.id)
 
             cur.execute(sql,sqlVar)
             result = cur.fetchall()
-            cur.close()
-            conn.close()
 
             for i in range(0,len(result)):
                 bookingids.append(result[i][0])
                 bookingdatetime.append(result[i][1])
-                resourceids.append(result[i][2])
+                resourceNums.append(result[i][2])
                 facilityids.append(result[i][3])
                 starttimes.append(result[i][4])
                 endtimes.append(result[i][5])
                 usedate.append(result[i][6])
+                userids.append(result[i][7])
 
-            for  i in range(0, len(resourceids)):
-                sql = "SELECT resourceName from Resources WHERE resourceID = %s"
-                sqlVar = (resourceids[i])
+            for i in range(0, len(userids)):
+                sql = "SELECT username from SFMSUser WHERE userID = %s"
+                sqlVar = (userids[i],)
                 cur.execute(sql,sqlVar)
-                result = cur.fetchall()
-                cur.close()
-                conn.close()
+                result = cur.fetchone()
+                usernames.append(result[0])
 
-                resourcenames.append(result[0][0])
+            for i in range(0, len(resourceNums)):
+                sql = "SELECT resourceName from Resources WHERE facilityID = %s AND resourceNumber = %s"
+                sqlVar = (facilityids[i], resourceNums[i],)
+                cur.execute(sql,sqlVar)
+                result = cur.fetchone()
+                resourcenames.append(result[0])
 
-            for  i in range(0, len(facilityids)):
+            for i in range(0, len(facilityids)):
                 sql = "SELECT facilityName from Facility WHERE facilityID = %s"
-                sqlVar = (facilityids[i])
+                sqlVar = (facilityids[i],)
                 cur.execute(sql,sqlVar)
-                result = cur.fetchall()
-                cur.close()
-                conn.close()
+                result = cur.fetchone()
+                facilitynames.append(result[0])
 
-                facilitynames.append(result[0][0])
+            cur.close()
+            conn.close()
 
         except mariadb.Error as e:
             print(f"Error: {e}")
 
-    return render_template('viewBooking.html', bookingids = bookingids, bookingdatetime = bookingdatetime, resourcenames = resourcenames, facilitynames = facilitynames, starttimes = starttimes, endtimes = endtimes, usedate = usedate)
+    return render_template('viewBooking.html', bookingids = bookingids, bookingdatetime = bookingdatetime, resourcenames = resourcenames, facilitynames = facilitynames, starttimes = starttimes, endtimes = endtimes, usedate = usedate, usernames = usernames)
 
 
 #Facility Management
@@ -1011,17 +1059,12 @@ def systemlogs():
             cur.execute(sql,sqlVar)
             result = cur.fetchall()
 
-            cur.close()
-            conn.close()
-
             for i in range(0,len(result)):
                 facilityID.append(result[i][0])
                 rfid.append(result[i][1])
                 readingTime.append(result[i][2])
 
             for i in range(0,len(rfid)):
-                conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
-                cur = conn.cursor()
 
                 sql = "SELECT userID FROM Cards WHERE userID = %s"
                 sqlVar = (rfid[i],)
@@ -1029,15 +1072,11 @@ def systemlogs():
                 #Run SQL Query
                 cur.execute(sql,sqlVar)
                 result = cur.fetchall()
-                cur.close()
-                conn.close()
 
                 for j in range(0,len(result)):
                     userids.append(result[j][0])
 
             for i in range(0,len(userids)):
-                conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
-                cur = conn.cursor()
 
                 sql = "SELECT firstName, lastName FROM SFMSUser WHERE userID = %s"
                 sqlVar = (userids[i],)
@@ -1045,16 +1084,12 @@ def systemlogs():
                 #Run SQL Query
                 cur.execute(sql,sqlVar)
                 result = cur.fetchall()
-                cur.close()
-                conn.close()
 
                 for j in range(0,len(result)):
                     firstName.append(result[j][0])
                     lastName.append(result[j][1])
 
             for i in range(0, len(facilityID)):
-                conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
-                cur = conn.cursor()
 
                 sql = "SELECT facilityName FROM Facility WHERE facilityID = %s"
                 sqlVar = (facilityID[i],)
@@ -1062,11 +1097,12 @@ def systemlogs():
                 #Run SQL Query
                 cur.execute(sql,sqlVar)
                 result = cur.fetchall()
-                cur.close()
-                conn.close()
 
                 for j in range(0,len(result)):
                     facilityName.append(result[j][0])
+
+            cur.close()
+            conn.close()
 
         except mariadb.Error as e:
             print(f"Error: {e}")

@@ -1,47 +1,75 @@
 {% extends "base.html" %}
 
 {% block main %}
+<div class="container">
+    <form action="" method="post">
+        <div class="row">
+            <div class="col-25">
+                <label for="addcard">Add New Card:</label>
+            </div>
+            <div class="col-75">
+                <input type="text" name="addcard" action="">
+            </div>
 
-<form action="" method="post">
+        </div>
+        <div class="row">
+            <input type="submit" name= "addNew" value="Add New Card">
+        </div>
+    
+    </form>
+</div>
 
-    <p>
-    <label for="addcard">Add New Card:</label>
-    <input type="text" name="addcard" action="">
-    </p>
-    <input type="submit" name= "addNew" value="Add New Card">
+<div class="container">
+    <form action="" method="post">
+        <div class="row">
+            <div class="col-25">
+                <label for="username">System Users:</label>
+            </div>
+            <div class="col-75">
+                <select name = "username" method="GET" action="">
+                    {% for username in users %}
+                    <option value = "{{username}}" SELECTED> {{username}}</option>"
+                    {% endfor %}
+                </select>
+            </div>
 
-</form>
-<form action="" method="post">
+        </div>
 
-    <p>
-    <label for="username">System Users:</label>
-    <select name = "username" method="GET" action="">
-        {% for username in users %}
-        <option value = "{{username}}" SELECTED> {{username}}</option>"
-        {% endfor %}
-    </select>
-    </p>
+        <div class="row">
+            <div class="col-25">
+                <label for="newcards">Currently Unassigned Cards:</label>
+            </div>
+            <div class="col-75">
+                <select name = "newcards" method="GET" action="">
+                    {% for cards in newcards %}
+                    <option value = "{{cards}}" SELECTED> {{cards}}</option>"
+                    {% endfor %}
+                </select>
+            </div>
 
-    <p>
-    <label for="newcards">Currently Unassigned Cards:</label>
-    <select name = "newcards" method="GET" action="">
-        {% for cards in newcards %}
-        <option value = "{{cards}}" SELECTED> {{cards}}</option>"
-        {% endfor %}
-    </select>
-    </p>
-    <input type="submit" name= "assignNew" value="Assign New Card">
+        </div>
+        <div class="row">
+            <input type="submit" name= "assignNew" value="Assign New Card">
+        </div>
 
+        <div class="row">
+            <div class="col-25">
+                <label for="usedcards">Currently Assigned Cards:</label>
+            </div>
+            <div class="col-75">
+                <select name = "usedcards" method="GET" action="">
+                    {% for cards in usedcards %}
+                    <option value = "{{cards}}" SELECTED> {{cards}}</option>"
+                    {% endfor %}
+                </select>
+            </div>
 
-    <p>
-    <label for="usedcards">Currently Assigned Cards:</label>
-    <select name = "usedcards" method="GET" action="">
-        {% for cards in usedcards %}
-        <option value = "{{cards}}" SELECTED> {{cards}}</option>"
-        {% endfor %}
-    </select>
-    </p>
+        </div>
 
-    <input type="submit" name="reassign" value="Reassign Card">
+        <div class="row">
+            <input type="submit" name="reassign" value="Reassign Card">
+        </div>    
+</div>
+
 
 {% endblock %}

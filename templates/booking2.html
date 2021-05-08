@@ -8,60 +8,94 @@
 </section>
 <section id="add-event">
 <h1 class="section-title">New {{facilityName}} Booking for {{g.user.firstname}}</h1>
-<form class="form" action="" method="POST" >
+<div class="container">
+    <form class="form" action="" method="POST" >
 
-    <label for="r1choice">Resource 1 Booking</label>
-    <select  name="r1choice" method="GET">
+        <label for="r1choice">Resource 1 Booking</label>
+        <select  name="r1choice" method="GET">
+            {% if sessions1|length == 0 %}
+            <option value="" disabled selected>Resource 1 Sessions Booked Out</option>
+            {% else %}
+            <option value="" disabled selected>Resource 1 Sessions Available</option>
+            {% endif %}
+    
+            {% for i in sessions1 %}
+            <option value="{{i}}|{{sessions1ids[sessions1.index(i)]}}">{{i}}</option>
+            {% endfor %}
+        </select>
+    
+        <input type="hidden" name="date" value="{{date}}">
+        <input type="hidden" name="facilityID" value="{{facilityID}}">
+        <input type="hidden" name="resourceNum" value="1">
+        <input type="hidden" name="tbl" value="{{tbl}}1">
+    
+    
         {% if sessions1|length == 0 %}
-        <option value="" disabled selected>Resource 1 Sessions Booked Out</option>
+        <button class="btn btn-primary" type="submit" name="book1" disabled>Place Resource 1 Booking</button>
         {% else %}
-        <option value="" disabled selected>Resource 1 Sessions Available</option>
+        <button class="btn btn-primary" type="submit" name="book1">Place Resource 1 Booking</button>
         {% endif %}
+    
+    
+    </form>
+</div>
+<div class="container">
+    <form class="form" action="" method="POST" >
+        <div class="row">
+            <div class="col-25">
+                <label for="r2choice">Resource 2 Booking</label>
+            </div>
+            <div class="col-75">
+                <select  name="r2choice" method="GET">
+                    {% if sessions2|length == 0 %}
+                    <option value="" disabled selected>Resource 2 Sessions Booked Out</option>
+                    {% else %}
+                    <option value="" disabled selected>Resource 2 Sessions Available</option>
+                    {% endif %}
+            
+                    {% for i in sessions2 %}
+                    <option value="{{i}}|{{sessions2ids[sessions2.index(i)]}}">{{i}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-75">
+                <input type="hidden" name="date" value="{{date}}">
+            </div>
+        </div>
 
-        {% for i in sessions1 %}
-        <option value="{{i}}|{{sessions1ids[sessions1.index(i)]}}">{{i}}</option>
-        {% endfor %}
-    </select>
+        <div class="row">
+            <div class="col-75">
+                <input type="hidden" name="facilityID" value="{{facilityID}}">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-75">
+                <input type="hidden" name="resourceNum" value="2">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-75">
+                <input type="hidden" name="tbl" value="{{tbl}}2">
+            </div>
+        </div>
 
-    <input type="hidden" name="date" value="{{date}}">
-    <input type="hidden" name="facilityID" value="{{facilityID}}">
-    <input type="hidden" name="resourceNum" value="1">
-    <input type="hidden" name="tbl" value="{{tbl}}1">
-
-
-    {% if sessions1|length == 0 %}
-    <button class="btn btn-primary" type="submit" name="book1" disabled>Place Resource 1 Booking</button>
-    {% else %}
-    <button class="btn btn-primary" type="submit" name="book1">Place Resource 1 Booking</button>
-    {% endif %}
-
-
-</form>
-<form class="form" action="" method="POST" >
-
-    <label for="r2choice">Resource 2 Booking</label>
-    <select  name="r2choice" method="GET">
+    
+    
         {% if sessions2|length == 0 %}
-        <option value="" disabled selected>Resource 2 Sessions Booked Out</option>
+        <div class="row">
+            <button class="btn btn-primary" type="submit" name="book2" disabled>Place Resource 2 Booking</button>
+        </div>
+
         {% else %}
-        <option value="" disabled selected>Resource 2 Sessions Available</option>
+        <div class="row">
+            <button class="btn btn-primary" type="submit" name="book2">Place Resource 2 Booking</button>
+        </div>
+
         {% endif %}
+        
+    </form>
+</div>
 
-        {% for i in sessions2 %}
-        <option value="{{i}}|{{sessions2ids[sessions2.index(i)]}}">{{i}}</option>
-        {% endfor %}
-    </select>
-    
-    <input type="hidden" name="date" value="{{date}}">
-    <input type="hidden" name="facilityID" value="{{facilityID}}">
-    <input type="hidden" name="resourceNum" value="2">
-    <input type="hidden" name="tbl" value="{{tbl}}2">
-
-    {% if sessions2|length == 0 %}
-    <button class="btn btn-primary" type="submit" name="book2" disabled>Place Resource 2 Booking</button>
-    {% else %}
-    <button class="btn btn-primary" type="submit" name="book2">Place Resource 2 Booking</button>
-    {% endif %}
-    
-</form>
 {% endblock %}

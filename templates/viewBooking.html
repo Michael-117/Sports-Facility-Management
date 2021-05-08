@@ -5,19 +5,30 @@
     <div> Bookings </div>
 </div>
 
-<form action="" method = 'POST'> 
+<div class="container">
+    <form action="" method = 'POST'> 
+        <div class="row">
+            <div class="col-25">
+                <label for="dropdown">Choose a range:</label>
+            </div>
 
-<div class = "login"> 
-    <label for="dropdown">Choose a range:</label>
-    <select name="range" id="range">
-            <option value="today">Today</option>
-            <option value="week">Week</option>
-            <option value="month">Month</option>
-    </select>
-    <input type="submit" value ="Submit">
+            <div class="col-75">
+                <select name="range" id="range">
+                    <option value="today">Today</option>
+                    <option value="week">Week</option>
+                    <option value="month">Month</option>
+                </select>
+            </div>
+
+        </div>
+        <div class="row">
+            <input type="submit" value ="Submit">
+        </div>
+
+        
+    </form>
 </div>
 
-</form>
 
    
     <table> 

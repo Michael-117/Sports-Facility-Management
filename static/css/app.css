@@ -5,14 +5,8 @@ body{
   font-family: Arial, Helvetica, sans-serif;
   margin: 0;
 }
-/*login*/
-.login{
-  width: 80%;
-  margin: 5% auto 15% auto;
-  background-color: #ccc;
 
-  
-}
+
 /*header*/
 .header{
   padding: 80px;
@@ -38,15 +32,9 @@ background: #ddd;
 nav{
 background-color: #45a049;
 }
-input[type=submit]:hover {
-background-color: #45a049;
-}
 
-.container {
-border-radius: 5px;
-background-color: #f2f2f2;
-padding: 20px;
-}
+
+
 
 /*nav*/
 nav{
@@ -92,25 +80,7 @@ padding: 16px;
 }
 form {border: 3px solid #f1f1f1;}
 
-label,input[type=text],input[type=number],select, input[type=password] {
-width: 80%;
-padding: 12px 20px;
-margin:0 100px;
-display: inline-block;
-border: 1px solid #ccc;
-box-sizing: border-box;
-}
 
-button,input[type=submit]{
-background-color: #096bc7;
-color: white;
-padding: 12px 20px;
-margin: 0px 100px;
-border: none;
-cursor: pointer;
-display: inline-block;
-box-sizing: border-box;
-}
 
 .btn{
 width: 50%;
@@ -141,6 +111,7 @@ border-radius: 50%;
   border-radius: 5px;
   background-color: #f2f2f2;
   padding: 20px;
+  width: 75%;
 }
 
 span.psw {
@@ -149,6 +120,33 @@ padding-top: 16px;
 }
 
 /*Forms*/
+input[type=text], select, textarea {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  resize: vertical;
+}
+
+label {
+  padding: 12px 12px 12px 0;
+  display: inline-block;
+}
+
+button,input[type=submit] {
+  background-color: #4CAF50;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  float: right;
+}
+
+input[type=submit]:hover {
+  background-color: #45a049;
+}
+
 .column {
   float: left;
   width: 33%;

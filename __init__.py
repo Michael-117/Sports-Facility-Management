@@ -55,6 +55,7 @@ twoWeeksAgo = now - relativedelta(weeks=2)
 dateTomorrow = now + relativedelta(days=1)
 nextWeek = now + relativedelta(weeks=1)
 nextMonth = now + relativedelta(months=1)
+nowString = now.strftime("%Y-%m-%d %H:%M:S")
 lastMonthString = lastMonth.strftime("%Y-%m-%d")
 twoWeeksAgoString = twoWeeksAgo.strftime("%Y-%m-%d")
 lastWeekString = lastWeek.strftime("%Y-%m-%d")
@@ -1199,7 +1200,6 @@ def systemlogs():
     if(request.method == 'POST'):
         logRange = request.form.get('range')
         date1 = request.form.get('date1') + " 00:00:00"
-        date2 = request.form.get('date2') + " 23:59:59"
 
         try:
             #Connect to DB
@@ -1208,7 +1208,7 @@ def systemlogs():
 
             
             sql = "SELECT facilityID, rfid, reading_time FROM SensorData WHERE reading_time BETWEEN %s AND %s"
-            sqlVar = (date1, date2)
+            sqlVar = (date1, nowString)
             
 
             #Run SQL Query

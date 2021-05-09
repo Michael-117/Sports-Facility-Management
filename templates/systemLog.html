@@ -9,16 +9,10 @@
     <form method = "POST">
         <div>
             <div class="col-25">
-                <label for="date1">Date Range Start</label>
+                <label for="date1">Logs Start Date</label>
             </div>
             <div class="col-25">
-                <input type="date" name=date1 min="{{lastMonth}}" max="{{twoWeeksAgo}}" required>
-            </div>
-            <div class="col-25">
-                <label for="date2">Date Range End</label>
-            </div>
-            <div class="col-25">
-                <input type="date" name=date2 min="{{twoWeeksAgo}}" max="{{today}}" required>
+                <input type="date" name=date1 min="{{lastMonth}}" max="{{today}}" required>
             </div>
         </div>
         <div class="row">

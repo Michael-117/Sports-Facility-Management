@@ -45,6 +45,8 @@ import math
 import mysql.connector as mariadb
 from dateutil.relativedelta import *
 from flask import Flask, flash, g, redirect, render_template, request, session
+from werkzeug.utils import secure_filename
+
 
 """Global Variables"""
 
@@ -244,7 +246,20 @@ def home():
 def profile():
     #Check if there is a user stored in global variable i.e. Someone is logged in
     if not g.user:
-        return redirect('/SFMS/login')
+    return redirect('/SFMS/login')
+
+    if request.method == "POST":
+        
+
+        if 'image' in request.files and request.files['image'].filename != "" and allowed_file(request.files['image'].filename):
+            image = request.files['image']
+            imageURL = secure_filename(image.filename)
+            image.save(os.path.join(app.config['UPLOAD_FOLDER'], imageURL))
+            imageRef = '/SFMS/static/uploads/' + imageURL
+        else:
+            imageURL = None
+
+    
     return render_template('profile.html')
 
 #Create Booking

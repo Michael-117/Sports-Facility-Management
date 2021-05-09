@@ -6,22 +6,56 @@
 
 <div class="card">
 
-    <form action="">
-        <input type="file" name="image" >
-    </form>
-
-    <img src="/SFMS/static/css/sports.jpg" alt="user" style="width:100%">
+    <img src="{{imageURL}}" alt="user" style="width:100%">
     <h1>{{g.user.firstname}}'s Profile</h1>
     <h3>User ID: {{g.user.id}}</h3>
-    <p class="title">CEO & Founder, Example</p>
-    <p>Harvard University</p>
+    <p class="title">{{g.user.userType}}</p>
+    <p>{{datetime.datetime.now()}}</p>
     <a href="#"><i class="fa fa-dribbble"></i></a>
     <a href="#"><i class="fa fa-twitter"></i></a>
     <a href="#"><i class="fa fa-linkedin"></i></a>
     <a href="#"><i class="fa fa-facebook"></i></a>
     <p><button>Contact</button></p>
 
+    
+
+    
+
 </div>
 
 
+<form action="">
+    <input type="file" name="image" >
+    <input type="submit" name="uploadFiles" value="Upload Photo"> 
+</form>
+
+
+<form action="passwordChecker" method = "POST" onsubmit = "return Validate()">
+    <input type="password" name="passwordChange1" >
+    
+    <input type="password" name="passwordChange2"> 
+    <input type="submit">
+</form>
+
+
 {% endblock %}
+
+<script name= "passwordChecker"> 
+
+function Validate() {
+
+    var passwordChange1 = document.forms[passwordChange1];
+    var passwordChange2 = document.forms[passwordChange2];
+    
+    if (passwordChange1 != passwordChange2) {
+        alert("All fields must be filled");
+        return false;
+    }
+
+    else {
+
+        return True;
+    }
+}   
+
+</script>

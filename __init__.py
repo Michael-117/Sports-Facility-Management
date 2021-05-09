@@ -248,19 +248,86 @@ def profile():
     if not g.user:
     return redirect('/SFMS/login')
 
+    imageURL = ""
+
+    try:
+            #Connect to DB
+                conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
+                cur = conn.cursor()
+
+                #Create SQL Query
+                sql = "SELECT image FROM SFMSUser WHERE userid = %s"
+                sqlvar = (g.user.id,)
+
+                #Run SQL Query
+                cur.execute(sql,sqlVar)
+
+                result = cur.fetchone()           
+                cur.close()
+                conn.close()
+
+                imageURL = result[0]
+
+            except mariadb.Error as e:
+                    print(f"Error: {e}")
+
     if request.method == "POST":
+
+        if "uploadFiles" in request.form:
         
 
-        if 'image' in request.files and request.files['image'].filename != "" and allowed_file(request.files['image'].filename):
-            image = request.files['image']
-            imageURL = secure_filename(image.filename)
-            image.save(os.path.join(app.config['UPLOAD_FOLDER'], imageURL))
-            imageRef = '/SFMS/static/uploads/' + imageURL
-        else:
-            imageURL = None
+            if 'image' in request.files and request.files['image'].filename != "" and allowed_file(request.files['image'].filename):
+                image = request.files['image']
+                imageURL = secure_filename(image.filename)
+                image.save(os.path.join(app.config['UPLOAD_FOLDER'], imageURL))
+                imageRef = '/SFMS/static/uploads/' + imageURL
+            else:
+                imageURL = None
 
+            try:
+            #Connect to DB
+                conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
+                cur = conn.cursor()
+
+                #Create SQL Query
+                sql = "UPDATE SFMSUser SET image = %s WHERE userid = %s"
+                sqlvar = (imageRef, g.user.id)
+
+                #Run SQL Query
+                cur.execute(sql,sqlVar)
+
+                conn.commit()           
+                cur.close()
+                conn.close()
+
+            except mariadb.Error as e:
+                    print(f"Error: {e}")
+
+        if "passwordChange" in request.form:
+            password = request.form.get(newPassword) 
+            hashedPassword = hashlib.sha256(password.encode('utf-8')).hexdigest()
+
+            try:
+            #Connect to DB
+                conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
+                cur = conn.cursor()
+
+                #Create SQL Query
+                sql = "UPDATE SFMSUser SET sesame = %s WHERE userid = %s"
+                sqlvar = (hashedPassword, g.user.id)
+
+                #Run SQL Query
+                cur.execute(sql,sqlVar)
+
+                conn.commit()           
+                cur.close()
+                conn.close()
+
+            except mariadb.Error as e:
+                    print(f"Error: {e}")
     
-    return render_template('profile.html')
+    return render_template('profile.html',imageURL=imageURL)
+
 
 #Create Booking
 @app.route('/booking', methods=['post', 'get'])

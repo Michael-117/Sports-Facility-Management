@@ -83,11 +83,11 @@ class User:
 """Helper Functions"""
 
 #Function to calculate time remaining for a booking based off current time, booking end time and a preset grace period
-def timeLeft(nowTime: str, endTime: str, timeBuffer: str):
+def timeLeft(nowTime: str, endTime: str):
     nowVals = nowTime.split(":")
     endVals = endTime.split(":")
     hrsDiff = int(endVals[0]) - int(nowVals[0])
-    minsDiff = int(endVals[1]) - int(nowVals[1]) + int(timeBuffer)
+    minsDiff = int(endVals[1]) - int(nowVals[1])
     secDiff = int(endVals[2]) - int(nowVals[2])
     secsLeft = (hrsDiff*3600) + (minsDiff*60) + (secDiff)
     return secsLeft
@@ -106,7 +106,6 @@ def getTimes(session: str):
 def generateSessions(sessionLength: str, gracePeriod: str, dateToday: str):
 
     sessionLength = int(sessionLength)
-    gracePeriod = int(gracePeriod)
     todayVar = dateToday.split("-")
     baseTime = datetime.datetime(int(todayVar[0]),int(todayVar[1]),int(todayVar[2]),0,0,0)
     sessions = []
@@ -116,7 +115,7 @@ def generateSessions(sessionLength: str, gracePeriod: str, dateToday: str):
     dates = []
     sessionTimes = []
 
-    sessionQuantity = math.floor((24 * 60) / (sessionLength + gracePeriod))
+    sessionQuantity = math.floor((24 * 60) / (sessionLength + int(gracePeriod)))
     times.append(baseTime.strftime("%H:%M"))
 
     for i in range(0,31):
@@ -124,10 +123,11 @@ def generateSessions(sessionLength: str, gracePeriod: str, dateToday: str):
         dates.append(timeVar.strftime("%Y-%m-%d"))
 
     for i in range(1, sessionQuantity+1):
-        gen = 0 + (i*(sessionLength + gracePeriod))
+        gen = (i*sessionLength)
         sessions.append(gen)
 
     for i in sessions:
+        baseTime = baseTime + relativedelta(minutes = int(gracePeriod))
         timeVar = baseTime + relativedelta(minutes=i)
         times.append(timeVar.strftime("%H:%M"))
 
@@ -588,7 +588,6 @@ def viewbooking():
 
     return render_template('manageBooking.html', bookingids = bookingids, bookingdatetime = bookingdatetime, resourcenames = resourcenames, facilitynames = facilitynames, starttimes = starttimes, endtimes = endtimes, usedate = usedate, usernames = usernames, resourceNums = resourceNums, status = status)
 
-
 #Facility Management
 @app.route('/facilitymanagement', methods=['post','get'])
 def newFacility():
@@ -706,10 +705,30 @@ def newFacility():
         if 'remove' in request.form:
             facilityName = request.form.get('facilityName')
 
+            tableVar = facilityName.split(" ")
+
             try:
                 #Connect to DB
                 conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
                 cur = conn.cursor()
+
+                #Create SQL Query
+                sql = "DELETE FROM Resources WHERE facilityID = (SELECT facilityID from Facility WHERE facilityName = %s)"
+                sqlVar = (facilityName,)
+
+                #Run SQL Query
+                cur.execute(sql, sqlVar)
+                conn.commit()
+
+                for i in range(1,3):
+                    tablename = tableVar[0][0] + tableVar[1][0] + "R" + str(i)
+                
+                    #Create SQL Query
+                    sql = "DROP TABLE {}".format(tablename)
+
+                    #Run SQL Query
+                    cur.execute(sql,)
+                    conn.commit()
 
                 #Create SQL Query
                 sql = "DELETE FROM Facility WHERE facilityName = %s"
@@ -718,6 +737,7 @@ def newFacility():
                 #Run SQL Query
                 cur.execute(sql, sqlVar)
                 conn.commit()
+
                 cur.close()
                 conn.close()
 
@@ -1253,6 +1273,7 @@ def systemlogs():
 #Verify Booking
 @app.route('/verify', methods=['post', 'get'])
 def verifyBooking():
+    message = ""
 
     today = datetime.date.today().strftime("%Y-%m-%d")
     now = datetime.datetime.today().time()
@@ -1263,46 +1284,51 @@ def verifyBooking():
         rfid = request.form.get('rfid')
 
         try:
-	    #Connect to DB
+	        #Connect to DB
             conn = mariadb.connect(user="esp32", password="esp_boss5", host="localhost", database="SFM")
             cur = conn.cursor()
 
-	    #Create SQL Query to log a facility access attempt
+	        #Create SQL Query to log a facility access attempt
             sql = "INSERT INTO SensorData (sensor, facilityID, rfid) VALUES (%s, %s, %s)"
             sqlVar = (name, facility, rfid)
-
-	    #Run SQL Query
             cur.execute(sql, sqlVar)
             conn.commit()
 
             #Create SQL Query to check for a booking
-            sql = "SELECT resourceID, useStart, useEnd FROM Booking WHERE userID = (SELECT userID FROM Cards WHERE cardID = %s) AND useDate = %s AND facilityID = %s AND status = 'Upcoming'"
+            sql = "SELECT bookingID, resourceNumber, useStart, useEnd FROM Booking WHERE userID = (SELECT userID FROM Cards WHERE cardID = %s) AND useDate = %s AND facilityID = %s AND status = 'Upcoming'"
             sqlVar = (rfid, today, facility)
-
-            #Run SQL Query
             cur.execute(sql, sqlVar)
             result = cur.fetchall()
-
-            cur.close()
-            conn.close()
+            print(result)
 
             if not result:
                 message = "0"
                 return  message, 200
+            
+            bookingID = result[0][0]
+            startVar = result[-1][2]
+            endVar = result[-1][3].lstrip()
 
-            start = datetime.datetime.strptime(result[-1][1], '%H:%M:%S').time()
-            end = datetime.datetime.strptime(result[-1][2], '%H:%M:%S').time()
+            #Create SQL Query to check for a booking
+            sql = "UPDATE Booking SET status = 'Kept' WHERE bookingID = %s"
+            sqlVar = (bookingID,)
+            cur.execute(sql, sqlVar)
+            conn.commit()
 
-            endVar = result[-1][2]
+            cur.close()
+            conn.close()
+
+            start = datetime.datetime.strptime(startVar, '%H:%M:%S').time()
+            end = datetime.datetime.strptime(endVar, '%H:%M:%S').time()
             nowVar = datetime.datetime.now().strftime("%H:%M:%S")
-
-            resource = result[-1][0]
+            resource = result[-1][1]
             timeVar = timeLeft(nowVar, endVar)
 
             if (start <= now) and (now <= end):
                 message = "1," + str(resource) + "," + str(timeVar)
             else:
                 message = "0"
+
         except mariadb.Error as e:
             print(f"Error: {e}")
     return message, 200

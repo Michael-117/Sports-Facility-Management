@@ -51,10 +51,12 @@ from flask import Flask, flash, g, redirect, render_template, request, session
 now = datetime.datetime.now()
 lastMonth = now - relativedelta(months=1)
 lastWeek = now - relativedelta(weeks=1)
+twoWeeksAgo = now - relativedelta(weeks=2)
 dateTomorrow = now + relativedelta(days=1)
 nextWeek = now + relativedelta(weeks=1)
 nextMonth = now + relativedelta(months=1)
 lastMonthString = lastMonth.strftime("%Y-%m-%d")
+twoWeeksAgoString = twoWeeksAgo.strftime("%Y-%m-%d")
 lastWeekString = lastWeek.strftime("%Y-%m-%d")
 dateToday = now.strftime("%Y-%m-%d")
 #dateTomorrowString = dateTomorrow.strftime("%Y-%m-%d")
@@ -1196,23 +1198,17 @@ def systemlogs():
 
     if(request.method == 'POST'):
         logRange = request.form.get('range')
+        date1 = request.form.get('date1') + " 00:00:00"
+        date2 = request.form.get('date2') + " 23:59:59"
 
         try:
             #Connect to DB
             conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
             cur = conn.cursor()
 
-            if (logRange == 'today'):
-                sql = "SELECT facilityID, rfid, reading_time FROM SensorData WHERE reading_time BETWEEN %s AND %s"
-                sqlVar = (dateString1, dateString2)
-
-            if (logRange == 'week'):
-                sql = "SELECT facilityID, rfid, reading_time FROM SensorData WHERE reading_time BETWEEN %s AND %s"
-                sqlVar = (weekString, dateString1)
-
-            if (logRange == 'month'):
-                sql = "SELECT facilityID, rfid, reading_time FROM SensorData WHERE reading_time BETWEEN %s AND %s"
-                sqlVar = (monthString, dateString1)
+            
+            sql = "SELECT facilityID, rfid, reading_time FROM SensorData WHERE reading_time BETWEEN %s AND %s"
+            sqlVar = (date1, date2)
             
 
             #Run SQL Query
@@ -1226,15 +1222,13 @@ def systemlogs():
 
             for i in range(0,len(rfid)):
 
-                sql = "SELECT userID FROM Cards WHERE userID = %s"
+                sql = "SELECT userID FROM Cards WHERE cardID = %s"
                 sqlVar = (rfid[i],)
 
                 #Run SQL Query
                 cur.execute(sql,sqlVar)
-                result = cur.fetchall()
-
-                for j in range(0,len(result)):
-                    userids.append(result[j][0])
+                result = cur.fetchone()
+                userids.append(result[0])
 
             for i in range(0,len(userids)):
 
@@ -1267,7 +1261,7 @@ def systemlogs():
         except mariadb.Error as e:
             print(f"Error: {e}")
 
-    return render_template('systemLog.html', firstName = firstName, lastName = lastName ,facilityName = facilityName, readingTime = readingTime)
+    return render_template('systemLog.html', firstName = firstName, lastName = lastName ,facilityName = facilityName, readingTime = readingTime, today=dateToday, twoWeeksAgo = twoWeeksAgoString, lastMonth = lastMonthString)
 
 
 #Verify Booking

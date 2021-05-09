@@ -8,12 +8,17 @@
 <div class="container">
     <form method = "POST">
         <div>
-            <div class="col-75">
-                <select name="range" id="range">
-                    <option value="today">Today</option>
-                    <option value="week">Week</option>
-                    <option value="month">Month</option>
-                </select>
+            <div class="col-25">
+                <label for="date1">Date Range Start</label>
+            </div>
+            <div class="col-25">
+                <input type="date" name=date1 min="{{lastMonth}}" max="{{twoWeeksAgo}}" required>
+            </div>
+            <div class="col-25">
+                <label for="date2">Date Range End</label>
+            </div>
+            <div class="col-25">
+                <input type="date" name=date2 min="{{twoWeeksAgo}}" max="{{today}}" required>
             </div>
         </div>
         <div class="row">

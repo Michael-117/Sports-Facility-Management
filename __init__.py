@@ -66,7 +66,12 @@ nextMonthString = nextMonth.strftime("%Y-%m-%d")
 timeNow = now.strftime("%H:%M:%S")
 timeNow2 = now.strftime("%H:%M")
 users = []
+
+UPLOAD_FOLDER = '/var/www/html/FlaskApp/SFMS/static/uploads'
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
 app = Flask(__name__)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 app.secret_key = "12345"
 
 
@@ -84,6 +89,11 @@ class User:
         return f'<User: {self.username}>'
 
 """Helper Functions"""
+
+#Function to check for file allowances
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 #Function to calculate time remaining for a booking based off current time, booking end time and a preset grace period
 def timeLeft(nowTime: str, endTime: str):
@@ -1262,7 +1272,6 @@ def systemlogs():
             print(f"Error: {e}")
 
     return render_template('systemLog.html', firstName = firstName, lastName = lastName ,facilityName = facilityName, readingTime = readingTime, today=dateToday, twoWeeksAgo = twoWeeksAgoString, lastMonth = lastMonthString)
-
 
 #Verify Booking
 @app.route('/verify', methods=['post', 'get'])

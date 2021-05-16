@@ -1606,7 +1606,6 @@ def verifyBooking():
                 startVar = result[-1][2]
                 endVar = result[-1][3]
 
-                #Create SQL Query to check for a booking
                 sql = "UPDATE Booking SET status = 'Kept' WHERE bookingID = %s"
                 sqlVar = (bookingID,)
                 cur.execute(sql, sqlVar)
@@ -1615,13 +1614,18 @@ def verifyBooking():
                 cur.close()
                 conn.close()
 
-                start = datetime.datetime.strptime(startVar, '%H:%M:%S').time()
-                end = datetime.datetime.strptime(endVar, '%H:%M:%S').time()
-                nowVar = datetime.datetime.now().strftime("%H:%M:%S")
-                resource = result[-1][1]
-                timeVar = timeLeft(nowVar, endVar)
+                # start = datetime.datetime.strptime(str(startVar), '%H:%M:%S')
+                # end = datetime.datetime.strptime(str(endVar), '%H:%M:%S').strftime('%H:%M:%S')
 
-                if (start <= now) and (now <= end):
+                nowVar = datetime.datetime.now().strftime("%H:%M:%S")
+                start = str(startVar)
+                end = str(endVar)
+
+                resource = result[-1][1]
+
+                timeVar = timeLeft(nowVar, end)
+
+                if (datetime.datetime.strptime(start, "%H:%M:%S").time() <= now) and (now <= datetime.datetime.strptime(end, "%H:%M:%S").time()):
                     message = "1," + str(resource) + "," + str(timeVar)
                 else:
                     message = "0"

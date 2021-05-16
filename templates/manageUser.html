@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 
 {% block main %}
+{% include 'flash_messages.html' %}
     <div class="container">
         <form action="" method="POST">
         
@@ -82,7 +83,7 @@
 
     </div>
     <div>
-        User Log
+        <h2>Active Users</h2>
     </div>
      
         <table> 
@@ -99,6 +100,30 @@
     
                 <td> {{firstname[username.index(names)]}} </td>
                 <td> {{lastname[username.index(names)]}} </td>
+                <td> {{names}} </td>
+           
+            </tr>
+            {% endfor %}
+        </table>
+    <div>
+    <div>
+        <h2>Inactive Users</h2>
+    </div>
+     
+        <table> 
+            <thead>
+                <tr>
+                    <th> First Name </th>
+                    <th> Last Name </th>
+                    <th> Username </th> 
+                </tr>
+            </thead>
+            {% for names in username2 %}
+    
+            <tr>
+    
+                <td> {{firstname2[username2.index(names)]}} </td>
+                <td> {{lastname2[username2.index(names)]}} </td>
                 <td> {{names}} </td>
            
             </tr>

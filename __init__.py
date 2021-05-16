@@ -46,6 +46,7 @@ import mysql.connector as mariadb
 import os
 from dateutil.relativedelta import *
 from flask import Flask, flash, g, redirect, render_template, request, session
+from flask_mail import Mail, Message
 from werkzeug.utils import secure_filename
 
 """Global Variables"""
@@ -74,7 +75,14 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAIL_SERVER']='smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USERNAME'] = 'sfacility.pd@gmail.com'
+app.config['MAIL_PASSWORD'] = 'new_Password'
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
 app.secret_key = "12345"
+mail = Mail(app)
 
 
 """Classes"""
@@ -183,6 +191,7 @@ def getTime():
 
 @app.route('/logout')
 def logout():
+    flash('You were logged out')
     return redirect('/SFMS/login')
 
 #Base Page
@@ -246,6 +255,7 @@ def login():
                 cur.close()
                 conn.close()
 
+                flash('You have successfully logged in')
                 #Redirect to profile page
                 return redirect('/SFMS/profile')
 
@@ -305,11 +315,15 @@ def profile():
                 
             except mariadb.Error as e:
                 print(f"Error: {e}")
+
+            flash('Password changed successfully')
+            return redirect('/SFMS/profile')
         
         if 'upload' in request.form:
             
             if 'file' not in request.files:
-                print('No Picture Uploaded')
+                
+                flash('No Picture Uploaded')
                 return redirect('/SFMS/profile')
 
             image = request.files['file']
@@ -329,7 +343,6 @@ def profile():
                 #Create SQL Query
                 sql = "UPDATE SFMSUser SET image = %s WHERE userid = %s"
                 sqlVar = (imageRef, g.user.id)
-                print(sql,sqlVar)
 
                 #Run SQL Query
                 cur.execute(sql,sqlVar)
@@ -341,6 +354,7 @@ def profile():
             except mariadb.Error as e:
                     print(f"Error: {e}")
 
+            flash('Profile picture changed successfully')
             return redirect('/SFMS/profile')
 
 
@@ -518,6 +532,10 @@ def booking():
             except mariadb.Error as e:
                 print(f"Error: {e}")
 
+            flash('Booking created successfully for Resource 1')
+            return redirect('/SFMS/booking')
+
+
         if "book2" in request.form:
             date = request.form.get('date')
             session = request.form.get('r2choice')
@@ -566,6 +584,9 @@ def booking():
 
             except mariadb.Error as e:
                 print(f"Error: {e}")
+
+            flash('Booking created successfully for Resource 2')
+            return redirect('/SFMS/booking')
 
         
     return render_template('booking1.html', facilityName = facilitynames, facilityids = facilityids, today = dateToday, endRange = nextMonthString, usernames = usernames, userids = userids)
@@ -732,6 +753,7 @@ def viewbooking():
             except mariadb.Error as e:
                 print(f"Error: {e}")
 
+            flash('Booking cancelled successfully')
             return redirect('/SFMS/viewbooking')
 
     return render_template('manageBooking.html', bookingids = bookingids, bookingdatetime = bookingdatetime, resourcenames = resourcenames, facilitynames = facilitynames, starttimes = starttimes, endtimes = endtimes, usedate = usedate, usernames = usernames, resourceNums = resourceNums, status = status)
@@ -848,6 +870,7 @@ def newFacility():
             except mariadb.Error as e:
                 print(f"Error: {e}")
 
+            flash('New facility, {} created'.format(facilityName))
             return redirect('/SFMS/facilitymanagement')
 
         if 'remove' in request.form:
@@ -899,7 +922,7 @@ def newFacility():
 
             except mariadb.Error as e:
                 print(f"Error: {e}")
-
+            flash('{} removed'.format(facilityName))
             return redirect('/SFMS/facilitymanagement')
 
     return render_template("manageFacility.html", facilities = facilities)
@@ -972,6 +995,8 @@ def manageResources():
                 
             except mariadb.Error as e:
                 print(f"Error: {e}")
+
+            flash('{}, Resource {} status updated'.format(facilityName, resourceNum))
             return redirect('/SFMS/facilitymanagement')
 
         if "rename" in request.form:
@@ -996,6 +1021,8 @@ def manageResources():
                 
             except mariadb.Error as e:
                 print(f"Error: {e}")
+
+            flash('{}, Resource {} renamed to {}'.format(facilityName, resourceNum, newresourceName))
             return redirect('/SFMS/facilitymanagement')
 
     return render_template('manageResource.html', facilityName = facilityName, resources = resources, resourceNum = resourceNum, status = status)
@@ -1081,17 +1108,33 @@ def newUser():
 
             except mariadb.Error as e:
                 print(f"Error: {e}")
+            
+            mailcontent = Message('Welcome to SFMS', sender = 'sfmsadmin@gmail.com', recipients = [useremail])
+            mailcontent.body = "Hello {},\nYour username is {}.\nYour password is {}.\nPlease remember to log in and change this default password as soon as possible.\nYou can log in to the system at the link below:\nhttps://mpearnet.ngrok.io/SFMS/login".format(firstname,username,password)
+            mail.send(mailcontent)
 
+            flash('New user {} {} created'.format(firstname, lastname))
             return redirect('/SFMS/usermanagement')
 
         if "deactivate" in request.form:
 
             username = request.form.get('username')
 
+
             try:
                 #Connect to DB
                 conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
                 cur = conn.cursor()
+
+                #Create SQL Query
+                sql = "SELECT firstName, lastName FROM SFMSUser WHERE username = %s"
+                sqlVar = (username,)
+
+                #Run SQL Query
+                cur.execute(sql, sqlVar)
+                result = cur.fetchone()
+                firstname = result[0]
+                lastname = result[1]
 
                 #Create SQL Query
                 sql = "UPDATE SFMSUser SET status = %s WHERE username = %s"
@@ -1113,6 +1156,7 @@ def newUser():
             except mariadb.Error as e:
                 print(f"Error: {e}")
 
+            flash('User {} {} deactivated'.format(firstname, lastname))
             return redirect('/SFMS/usermanagement')
 
         if "remove" in request.form:
@@ -1123,6 +1167,16 @@ def newUser():
                 #Connect to DB
                 conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
                 cur = conn.cursor()
+
+                #Create SQL Query
+                sql = "SELECT firstName, lastName FROM SFMSUser WHERE username = %s"
+                sqlVar = (username,)
+
+                #Run SQL Query
+                cur.execute(sql, sqlVar)
+                result = cur.fetchone()
+                firstname = result[0]
+                lastname = result[1]
 
                 #Create SQL Query
                 sql = "DELETE FROM SFMSUser WHERE username = %s"
@@ -1144,6 +1198,7 @@ def newUser():
             except mariadb.Error as e:
                 print(f"Error: {e}")
 
+            flash('User {} {} removed'.format(firstname, lastname))
             return redirect('/SFMS/usermanagement')
 
         if "activate" in request.form:
@@ -1154,6 +1209,16 @@ def newUser():
                 #Connect to DB
                 conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
                 cur = conn.cursor()
+
+                #Create SQL Query
+                sql = "SELECT firstName, lastName FROM SFMSUser WHERE username = %s"
+                sqlVar = (username,)
+
+                #Run SQL Query
+                cur.execute(sql, sqlVar)
+                result = cur.fetchone()
+                firstname = result[0]
+                lastname = result[1]
 
                 #Create SQL Query
                 sql = "UPDATE SFMSUser SET status = %s WHERE username = %s"
@@ -1169,6 +1234,7 @@ def newUser():
             except mariadb.Error as e:
                 print(f"Error: {e}")
 
+            flash('User {} {} activated'.format(firstname, lastname))
             return redirect('/SFMS/usermanagement')
 
 
@@ -1270,10 +1336,12 @@ def assign():
                 conn.commit()
                 cur.close()
                 conn.close()
-                return redirect('/SFMS/cardmanagement')
 
             except mariadb.Error as e:
                 print(f"Error: {e}")
+
+            flash('Card {} assigned to {}'.format(chosenRFID, username))
+            return redirect('/SFMS/cardmanagement')
 
         #If admin wants to a reassign a card from one user to another
         if 'reassign' in request.form:
@@ -1309,10 +1377,12 @@ def assign():
                 conn.commit()
                 cur.close()
                 conn.close()
-                return redirect('/SFMS/cardmanagement')
 
             except mariadb.Error as e:
                 print(f"Error: {e}")
+
+            flash('Card {} successfully reassigned to {}'.format(chosenRFID, username))
+            return redirect('/SFMS/cardmanagement')
 
         #If admin wants to add new card to system
         if 'addNew' in request.form:
@@ -1331,10 +1401,12 @@ def assign():
                 conn.commit()
                 cur.close()
                 conn.close()
-                return redirect('/SFMS/cardmanagement')
 
             except mariadb.Error as e:
                 print(f"Error: {e}")
+            
+            flash('New Card {} successfully added'.format(rfid))
+            return redirect('/SFMS/cardmanagement')
 
         if 'delete' in request.form:
             rfid = request.form.get('deleteCard')
@@ -1352,11 +1424,12 @@ def assign():
                 conn.commit()
                 cur.close()
                 conn.close()
-                return redirect('/SFMS/cardmanagement')
 
             except mariadb.Error as e:
                 print(f"Error: {e}")
 
+            flash('Card {} removed successfully'.format(rfid))
+            return redirect('/SFMS/cardmanagement')
 
     return render_template("manageCard.html", users = users, newcards = newcards, usedcards = usedcards, usernames = usernames)
 

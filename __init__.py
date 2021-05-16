@@ -43,8 +43,10 @@ import datetime
 import hashlib
 import math
 import mysql.connector as mariadb
+import os
 from dateutil.relativedelta import *
 from flask import Flask, flash, g, redirect, render_template, request, session
+from werkzeug.utils import secure_filename
 
 """Global Variables"""
 
@@ -175,6 +177,10 @@ def before_request():
             if x.id == session['user_ID']:
                 g.user = x
 
+@app.route('/currtime.json')
+def getTime():
+    return datetime.datetime.now().strftime("%H:%M")
+
 @app.route('/logout')
 def logout():
     return redirect('/SFMS/login')
@@ -192,7 +198,7 @@ def header():
 #Footer
 @app.route('/footer')
 def footer():
-    return render_template('footer.html')
+    return render_template('footer.html', time= getTime())
 
 #Error Page
 @app.route('/errorpage')
@@ -254,12 +260,91 @@ def home():
     return render_template('home.html')
 
 #Profile Page
-@app.route('/profile')
+@app.route('/profile', methods=['post','get'])
 def profile():
     #Check if there is a user stored in global variable i.e. Someone is logged in
     if not g.user:
         return redirect('/SFMS/login')
-    return render_template('profile.html')
+
+    try:
+        #Connect to DB
+        conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
+        cur = conn.cursor()
+
+        #Create SQL Query
+        sql = "SELECT image FROM SFMSUser WHERE userID = %s"
+        sqlVar = (g.user.id,)
+
+        #Run SQL Query
+        cur.execute(sql,sqlVar)
+        result = cur.fetchone()
+        imageURL = result[0]
+        
+    except mariadb.Error as e:
+                print(f"Error: {e}")
+
+    if (request.method == 'POST'):
+
+        if 'change' in request.form:
+            password = request.form.get('p2')
+            hashedPassword = hashlib.sha256(password.encode('utf-8')).hexdigest()
+            try:
+                #Connect to DB
+                conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
+                cur = conn.cursor()
+
+                #Create SQL Query
+                sql = "UPDATE SFMSUser SET sesame = %s WHERE userID = %s"
+                sqlVar = (hashedPassword, g.user.id)
+
+                #Run SQL Query
+                cur.execute(sql,sqlVar)
+                conn.commit()
+                cur.close()
+                conn.close()
+                
+            except mariadb.Error as e:
+                print(f"Error: {e}")
+        
+        if 'upload' in request.form:
+            
+            if 'file' not in request.files:
+                print('No Picture Uploaded')
+                return redirect('/SFMS/profile')
+
+            image = request.files['file']
+
+            if image and allowed_file(image.filename):
+                upimageURL = secure_filename(image.filename)
+                image.save(os.path.join(app.config['UPLOAD_FOLDER'], upimageURL))
+                imageRef = "/SFMS/static/uploads/" + upimageURL
+            else:
+                imageRef = "/SFMS/static/uploads/" + "noimage.png"
+
+            try:
+            #Connect to DB
+                conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
+                cur = conn.cursor()
+
+                #Create SQL Query
+                sql = "UPDATE SFMSUser SET image = %s WHERE userid = %s"
+                sqlVar = (imageRef, g.user.id)
+                print(sql,sqlVar)
+
+                #Run SQL Query
+                cur.execute(sql,sqlVar)
+
+                conn.commit()           
+                cur.close()
+                conn.close()
+
+            except mariadb.Error as e:
+                    print(f"Error: {e}")
+
+            return redirect('/SFMS/profile')
+
+
+    return render_template('profile.html', image = imageURL)
 
 #Create Booking
 @app.route('/booking', methods=['post', 'get'])
@@ -503,7 +588,28 @@ def viewbooking():
     userids = []
     usernames = []
     status = []
+    tableNames = []
+    
+    try:
+        now = datetime.datetime.now()
+        tn2 = now.strftime("%H:%M:%S")
 
+        #Connect to DB
+        conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
+        cur = conn.cursor()
+
+        #Create SQL Query
+        sql = "UPDATE Booking SET status = 'Ended' WHERE useDate <= CONVERT(%s, DATE) AND status = 'Upcoming' AND useEnd <= CONVERT(%s, TIME)"
+        sqlVar = (dateToday, tn2)
+
+        #Run SQL Query
+        cur.execute(sql, sqlVar)
+        conn.commit()
+        cur.close()
+        conn.close()
+
+    except mariadb.Error as e:
+        print(f"Error: {e}")
 
     if(request.method == 'POST'):
 
@@ -1425,7 +1531,7 @@ def verifyBooking():
                 
                 bookingID = result[0][0]
                 startVar = result[-1][2]
-                endVar = result[-1][3].lstrip()
+                endVar = result[-1][3]
 
                 #Create SQL Query to check for a booking
                 sql = "UPDATE Booking SET status = 'Kept' WHERE bookingID = %s"

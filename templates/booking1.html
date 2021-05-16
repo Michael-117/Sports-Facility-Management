@@ -7,7 +7,12 @@
 <div class="events-container"></div>
 </section>
 <section id="add-event">
-<h1 class="section-title">New Booking for {{g.user.firstname}}</h1>
+{% if g.user.userType == 'admin' %}
+    <h1 class="section-title">New Booking</h1>
+{% endif %}
+{% if g.user.userType == 'member' %}
+    <h1 class="section-title">New Booking for {{g.user.firstname}}</h1>
+{% endif %}
 <form class="form" action="" method="POST" >
 
     {% if g.user.userType == 'admin' %}

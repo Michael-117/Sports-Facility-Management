@@ -1,2 +1,21 @@
+<script src="https://code.jquery.com/jquery-3.2.1.js"></script>
 <hr>
+<h2 id="date"></h2>
+<h2 id="time"></h2>
 <p>Copyright &copy; Potential Difference.</p>
+
+
+<script >
+    window.onload = setInterval(clock,1000);
+    function clock()
+    {
+        var d = new Date();
+        var year = d.getFullYear();
+        var month = d.getMonth() +1;
+        var day = d.getDate();
+        var hours = d.getHours();
+        var mins = (d.getMinutes()<10?'0':'') + d.getMinutes();
+        document.getElementById("time").innerHTML="Current Time " + hours + ":" + mins;
+        document.getElementById("date").innerHTML="Today's Date " + day + "/" + month + "/" + year;
+    }
+</script>

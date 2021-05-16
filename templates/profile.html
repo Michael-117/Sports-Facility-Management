@@ -1,23 +1,72 @@
 {% extends "base.html" %}
 <header>
     <link rel="stylesheet" href="/SFMS/static/css/profile.css') }}">
+    <script src="https://code.jquery.com/jquery-3.2.1.js"></script>
     </header>
 {% block main %}
 
 <div class="card">
-
     <img src="/SFMS/static/css/sports.jpg" alt="user" style="width:100%">
     <h1>{{g.user.firstname}}'s Profile</h1>
-    <h3>User ID: {{g.user.id}}</h3>
-    <p class="title">CEO & Founder, Example</p>
-    <p>Harvard University</p>
-    <a href="#"><i class="fa fa-dribbble"></i></a>
-    <a href="#"><i class="fa fa-twitter"></i></a>
-    <a href="#"><i class="fa fa-linkedin"></i></a>
-    <a href="#"><i class="fa fa-facebook"></i></a>
-    <p><button>Contact</button></p>
-
+    <h2>User ID: {{g.user.id}}</h2>
+    <h2>User Type: {{g.user.userType}}</h2>
+    <img src="{{image}}" alt="Avatar" class = "profile">
+</div>
+<div>
+    <form action="" method="POST" enctype=multipart/form-data>
+        <label for="file">Upload a profile picture</label>
+        <input type="file" name="file">
+        <input type="submit" name="upload" value="Upload">
+    </form>
 </div>
 
+<div>
+    <form action="" method="POST" onsubmit="return validate()">
+        <div>
+            <label for="p1">Change Your Password:</label>
+        </div>
+        <div>
+            <input type="password" name="p1" id="pass1" required>
+            <span id = "message1" style="color:red"> </span>
+        </div>
+        <div>
+            <label for="p2">Retype New Password:</label>
+        </div>
+        <div>
+            <input type="password" name="p2" id="pass2" required>
+            <span id = "message2" style="color:red"> </span>
+        </div>
+        <div>
+            <button class="btn btn-primary" type="submit" name="change">Change Password</button>
+        </div>
+    
+    </form>
+</div>
 
 {% endblock %}
+
+<script>
+    function validate()
+    {
+        var password1 = document.getElementById('pass1').value;
+        var password2 = document.getElementById('pass2').value;
+
+        if (password1.length < 8){
+            document.getElementById("message1").innerHTML = "Passwords length must be at least 8 characters";  
+            return false;  
+        }
+        if (password1.length > 15){
+            document.getElementById("message1").innerHTML = "Passwords length must be less than 15 characters";  
+            return false;  
+        }
+        if (password1 != password2){
+            document.getElementById("message2").innerHTML = "Passwords do not match!";  
+            return false;  
+        }
+        else{
+            return true;
+        }
+
+
+    }
+</script>

@@ -2,11 +2,11 @@ DROP TABLE IF EXISTS Booking;
 create table Booking(
 
 	bookingID int(10) NOT NULL UNIQUE AUTO_INCREMENT,
-	bookDateTime datetime,
-	resourceNumber int (50) NOT NULL UNIQUE,
-    facilityID int (10) NOT NULL UNIQUE,
-    useStart varchar (10) NOT NULL , -- type should probably be time
-    useEnd varchar (10) NOT NULL, -- type should probably be time
+	bookDateTime datetime DEFAULT CURRENT_TIMESTAMP,
+	resourceNumber int (50) NOT NULL,
+    facilityID int (10) NOT NULL,
+    useStart varchar (10) NOT NULL , 
+    useEnd varchar (10) NOT NULL, 
     useDate date,
     userID int (10) NOT NULL ,
     status varchar (25) NOT NULL DEFAULT 'Upcoming',
@@ -17,17 +17,17 @@ create table Booking(
  
 DROP TABLE IF EXISTS Cards;
 create table Cards(
-	userID int(10) NOT NULL UNIQUE,
+	userID int(10) NOT NULL,
 	CardID varchar(15) NOT NULL UNIQUE, 
-    primary key (CardID) -- type should probably be INT
+    primary key (CardID) 
 	
 );
 
 
 DROP TABLE IF EXISTS Facility;
 create table Facility (
-	facilityName varchar(10) NOT NULL UNIQUE, 
-	facilityID int(10) NOT NULL AUTO_INCREMENT,
+	facilityName varchar(50) NOT NULL UNIQUE, 
+	facilityID int(10) NOT NULL UNIQUE AUTO_INCREMENT,
 	sessionLength int(11) NOT NULL, 
     gracePeriod int(11) NOT NULL,
 	primary key (facilityID)
@@ -35,27 +35,60 @@ create table Facility (
 );
 
 
-DROP TABLE IF EXISTS SensorData; 
-create table SensorData (
-	id int(6) NOT NULL AUTO_INCREMENT , 
-	sensor varchar(30) NOT NULL , 
-	facilityID int(50) NOT NULL,
-    rfid varchar (10) NOT NULL,
-    resourceNumber int (11) NOT NULL,
-    reading_time timestamp,
-	primary key (id)
+DROP TABLE IF EXISTS FFR1; 
+create table FFR1 (
+	slotID int(11) NOT NULL UNIQUE AUTO_INCREMENT , 
+	sessionRange varchar(255) NOT NULL ,
+	bookingID int (11) NOT NULL, 
+	status varchar (10) NOT NULL,
+	date date NOT NULL,
+	primary key (slotID)
+	
+);
+
+DROP TABLE IF EXISTS FFR2; 
+create table FFR2 (
+	slotID int(11) NOT NULL UNIQUE AUTO_INCREMENT , 
+	sessionRange varchar(255) NOT NULL ,
+	bookingID int (11) NOT NULL, 
+	status varchar (10) NOT NULL,
+	date date NOT NULL,
+	primary key (slotID)
 	
 );
 
 
 DROP TABLE IF EXISTS Resources; 
 create table Resource (
-	resourceID int(50) NOT NULL AUTO_INCREMENT , 
+	resourceID int(50) NOT NULL UNIQUE AUTO_INCREMENT , 
 	resourceName varchar(500) NOT NULL ,
 	resourceNumber int (11) NOT NULL, 
 	facilityID int(50) NOT NULL,
     status varchar (15) NOT NULL,
 	primary key (resourceID)
+	
+);
+
+
+DROP TABLE IF EXISTS KnownCards; 
+create table KnownCards (
+	id int(6) NOT NULL UNIQUE AUTO_INCREMENT , 
+	sensor varchar(30) NOT NULL , 
+	facilityID int(50) NOT NULL,
+    rfid varchar (10) NOT NULL,
+    reading_time timestamp DEFAULT CURRENT_TIMESTAMP,
+	primary key (id)
+	
+);
+
+DROP TABLE IF EXISTS UnknownCards; 
+create table UnknownCards (
+	id int(6) NOT NULL UNIQUE AUTO_INCREMENT , 
+	sensor varchar(30) NOT NULL , 
+	facilityID int(50) NOT NULL,
+    rfid varchar (10) NOT NULL,
+    reading_time timestamp DEFAULT CURRENT_TIMESTAMP,
+	primary key (id)
 	
 );
 
@@ -72,45 +105,15 @@ create table SFMSUser (
     telephone varchar(30) NOT NULL,
     sesame varchar(500) NOT NULL,
     status varchar (20) NOT NULL,
-    image image,
-	primary key (userID, username)
-	
-);
-
-DROP TABLE IF EXISTS Resources; 
-create table Resource (
-	firstName varchar(30)NOT NULL , 
-	lastName varchar(30) NOT NULL ,
-	facilityID int(50) NOT NULL,
-    reading_time timestamp,
-	primary key (facilityID)
-	
-);
-
-DROP TABLE IF EXISTS FFR1; -- FIELDS NEED TO BE EDITED
-create table FFR1 (
-	resourceID int(50) NOT NULL AUTO_INCREMENT , 
-	resourceName varchar(500) NOT NULL ,
-	resourceNumber int (11) NOT NULL, 
-	facilityID int(50) NOT NULL,
-    status varchar (15) NOT NULL,
-	primary key (resourceID)
-	
-);
-
-DROP TABLE IF EXISTS FFR2; -- FIELDS NEED TO BE EDITED
-create table FFR2 (
-	resourceID int(50) NOT NULL AUTO_INCREMENT , 
-	resourceName varchar(500) NOT NULL ,
-	resourceNumber int (11) NOT NULL, 
-	facilityID int(50) NOT NULL,
-    status varchar (15) NOT NULL,
-	primary key (resourceID)
+    image varchar(225) DEFAULT NULL,
+	primary key (userID)
 	
 );
 
 
-INSERT INTO Booking (bookingID,resourceNumber,facilityID,userID,status) VALUES (1,1,1,3,"Upcoming");
+
+
+INSERT INTO Booking (bookingID,resourceNumber,facilityID,userID,status) VALUES (1,1,1,3,'Upcoming');
 
 
 INSERT INTO Cards (userID,cardID) VALUES (3,'245DC29');
@@ -122,7 +125,7 @@ INSERT INTO Facility (facilityName,facilityID,sessionLength, gracePeriod) VALUES
 
 
 
-INSERT INTO Resources (resourceID,resourceName,resourceNumber,facilityID,status) VALUES (1,'Field 1',1, 1, "Upcoming");
+INSERT INTO Resources (resourceID,resourceName,resourceNumber,facilityID,status) VALUES (1,'Field 1',1, 1, 'Upcoming');
 
 
 

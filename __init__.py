@@ -915,7 +915,7 @@ def newUser():
         cur = conn.cursor()
 
         #Create SQL Query
-        sql = "SELECT firstName, lastName, username FROM SFMSUser WHERE userType != 'SYSTEM' AND status = 'active'"
+        sql = "SELECT firstName, lastName, username FROM SFMSUser WHERE userType != 'SYSTEM' AND status = 'active' AND userID != '2'"
 
         #Run SQL Query
         cur.execute(sql,)
@@ -927,7 +927,7 @@ def newUser():
             usernames.append(result[i][2])
 
         #Create SQL Query
-        sql = "SELECT firstName, lastName, username FROM SFMSUser WHERE userType != 'SYSTEM' AND status = 'inactive'"
+        sql = "SELECT firstName, lastName, username FROM SFMSUser WHERE userType != 'SYSTEM' AND status = 'inactive' AND userID != '2'"
 
         #Run SQL Query
         cur.execute(sql,)

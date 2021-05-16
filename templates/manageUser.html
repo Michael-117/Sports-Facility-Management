@@ -81,6 +81,31 @@
         </form>
 
     </div>
+    <div>
+        User Log
+    </div>
+     
+        <table> 
+            <thead>
+                <tr>
+                    <th> First Name </th>
+                    <th> Last Name </th>
+                    <th> Username </th> 
+                </tr>
+            </thead>
+            {% for names in username %}
+    
+            <tr>
+    
+                <td> {{firstname[username.index(names)]}} </td>
+                <td> {{lastname[username.index(names)]}} </td>
+                <td> {{names}} </td>
+           
+            </tr>
+            {% endfor %}
+        </table>
+    <div>
+
     <div class="container">
         <form action="" method="POST">
             <div class="row">

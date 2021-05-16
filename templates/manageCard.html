@@ -18,6 +18,28 @@
     
     </form>
 </div>
+<div>
+    Assigned RFID Card Log
+</div>
+ 
+    <table> 
+        <thead>
+            <tr>
+                <th> Username </th>
+                <th> Card Code </th>         
+            </tr>
+        </thead>
+        {% for cards in usedcards %}
+
+        <tr>
+
+            <td> {{usernames[usedcards.index(cards)]}} </td>
+            <td> {{cards}} </td>
+       
+        </tr>
+        {% endfor %}
+    </table>
+<div>
 
 <div class="container">
     <form action="" method="post">

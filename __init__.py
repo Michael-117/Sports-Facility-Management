@@ -1565,6 +1565,16 @@ def verifyBooking():
         facility = request.form.get('facilityID')
         rfid = request.form.get('rfid')
 
+        #MasterCard On
+        if (rfid =="5A797D7F"):
+            message = "1,3,I"
+            return message, 200
+
+        #MasterCard Off
+        if (rfid =="347EFD29"):
+            message = "0,3,I"
+            return message, 200
+
         try:
 	        #Connect to DB
             conn = mariadb.connect(user="esp32", password="esp_boss5", host="localhost", database="SFM")

@@ -39,6 +39,7 @@ DROP TABLE IF EXISTS FFR1;
 create table FFR1 (
 	slotID int(11) NOT NULL UNIQUE AUTO_INCREMENT , 
 	sessionRange varchar(255) NOT NULL ,
+	endTime varchar (255) NOT NULL,
 	bookingID int (11) NOT NULL, 
 	status varchar (10) NOT NULL,
 	date date NOT NULL,
@@ -50,6 +51,7 @@ DROP TABLE IF EXISTS FFR2;
 create table FFR2 (
 	slotID int(11) NOT NULL UNIQUE AUTO_INCREMENT , 
 	sessionRange varchar(255) NOT NULL ,
+	endTime varchar (255) NOT NULL,
 	bookingID int (11) NOT NULL, 
 	status varchar (10) NOT NULL,
 	date date NOT NULL,

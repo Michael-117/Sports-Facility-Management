@@ -62,7 +62,7 @@
                 <select name = "usedcards" method="GET" action="">
                     <option value="" disabled selected> Reassign a Used Card</option>
                     {% for cards in usedcards %}
-                    <option value = "{{cards}}"> {{cards}}</option>"
+                    <option value = "{{cards}}"> Card: {{cards}} || Assigned To: {{usernames[usedcards.index(cards)]}}</option>"
                     {% endfor %}
                 </select>
             </div>

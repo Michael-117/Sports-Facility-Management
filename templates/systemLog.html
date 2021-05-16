@@ -22,7 +22,9 @@
     </form>
 </div>
 
-
+<div>
+    Registered Card Access Attempts
+</div>
  
     <table> 
         <thead>
@@ -46,6 +48,28 @@
         </tr>
         {% endfor %}
     </table>
+<div>
+    Unregistered Card Access Attempts
+</div>
+    <table> 
+        <thead>
+            <tr>
+                <th> RFID Tag </th>
+                <th> Facility </th>
+                <th> Attempted Access Date/Time </th>
+         
+            </tr>
+        </thead>
+        {% for i in ureadingTime %}
 
+        <tr>
+
+            <td> {{urfid[ureadingTime.index(i)]}} </td>
+            <td> {{ufacilityName[ureadingTime.index(i)]}} </td>
+            <td> {{i}} </td>
+       
+        </tr>
+        {% endfor %}
+    </table>
 
 {% endblock %}

@@ -10,6 +10,16 @@
 <h1 class="section-title">New Booking for {{g.user.firstname}}</h1>
 <form class="form" action="" method="POST" >
 
+    {% if g.user.userType == 'admin' %}
+    <label for="user">Which user are you booking for?</label>
+    <select id="status" name="user" method = 'GET'>
+        <option value="" disabled selected>Available Users</option>
+        {% for i in usernames %}
+        <option value="{{userids[usernames.index(i)]}}">{{i}}</option>
+        {% endfor %}
+    </select>
+    {% endif %}
+
     <label for="facilityID">Which facility do you want to use?</label>
     <select id="status" name="facilityID">
         <option value="" disabled selected>Available Facilities</option>

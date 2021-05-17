@@ -1571,7 +1571,7 @@ def verifyBooking():
             return message, 200
 
         #MasterCard Off
-        if (rfid =="347EFD29"):
+        if (rfid =="9C52BE"):
             message = "0,3,I"
             return message, 200
 
@@ -1609,7 +1609,7 @@ def verifyBooking():
                 print(result)
 
                 if not result:
-                    message = "0"
+                    message = "0,N"
                     return  message, 200
                 
                 bookingID = result[0][0]

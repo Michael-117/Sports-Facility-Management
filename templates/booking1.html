@@ -13,28 +13,50 @@
 {% if g.user.userType == 'member' %}
     <h1 class="section-title">New Booking for {{g.user.firstname}}</h1>
 {% endif %}
-<form class="form" action="" method="POST" >
+<div class="container">
+    <form class="form" action="" method="POST" >
 
-    {% if g.user.userType == 'admin' %}
-    <label for="user">Which user are you booking for?</label>
-    <select id="status" name="user" method = 'GET'>
-        <option value="" disabled selected>Available Users</option>
-        {% for i in usernames %}
-        <option value="{{userids[usernames.index(i)]}}">{{i}}</option>
-        {% endfor %}
-    </select>
-    {% endif %}
 
-    <label for="facilityID">Which facility do you want to use?</label>
-    <select id="status" name="facilityID">
-        <option value="" disabled selected>Available Facilities</option>
-        {% for i in facilityName %}
-        <option value="{{facilityids[facilityName.index(i)]}}">{{i}}</option>
-        {% endfor %}
-    </select>
-    
-    <input type="date" id="status" name="date" required min="{{today}}" max="{{endRange}}">
+        {% if g.user.userType == 'admin' %}
+        <div class="row">
+            <div class="col-25">
+                <label for="user">Which user are you booking for?</label>
+            </div>
+            <div class="col-75">
+                <select id="status" name="user" method = 'GET'>
+                    <option value="" disabled selected>Available Users</option>
+                    {% for i in usernames %}
+                    <option value="{{userids[usernames.index(i)]}}">{{i}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        
+        {% endif %}
+        <div class="row">
+            <div class="col-25">
+                <label for="facilityID">Which facility do you want to use?</label>
+            </div>
+            <div class="col-75">
+                <select id="status" name="facilityID">
+                    <option value="" disabled selected>Available Facilities</option>
+                    {% for i in facilityName %}
+                    <option value="{{facilityids[facilityName.index(i)]}}">{{i}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+        
+        <div class="row">
+            <input type="date" id="status" name="date" required min="{{today}}" max="{{endRange}}">
+        </div>
+        
+        
+        <div class="row">
+            <button class="btn btn-primary" type="submit" name="search">Check Availability</button>
+        </div>
+        
+    </form>
+</div>
 
-    <button class="btn btn-primary" type="submit" name="search">Check Availability</button>
-</form>
 {% endblock %}

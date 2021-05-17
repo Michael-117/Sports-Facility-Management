@@ -16,7 +16,6 @@
 <div class="container">
     <form  action="" method="POST" >
 
-
         {% if g.user.userType == 'admin' %}
         <div class="row">
             <div class="col-25">
@@ -48,7 +47,13 @@
         </div>
         
         <div class="row">
-            <input type="date" id="status" name="date" required min="{{today}}" max="{{endRange}}">
+            <div class="col-25">
+
+            </div>
+            <div class="col-75">
+                <input type="date" id="status" name="date" required min="{{today}}" max="{{endRange}}">
+            </div>   
+            
         </div>
         
         

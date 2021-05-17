@@ -15,13 +15,13 @@
 #define relay2 32               //Relay #2
 
 //Wi-Fi Setup Constants
-const char* ssid = "PearFi-2";
+const char* ssid = "PearFi";
 const char* password = "P3arsonHousehold";
 const char* serverName = "http://192.168.0.4/SFMS/verify";
 
 //POST Request Information
-String sensor = "SensorA";
-String facilityID = "1";
+String sensor = "SensorB";
+String facilityID = "2";
 int resourceID, grant, endTime;
 
 //HTTP Variables
@@ -37,19 +37,21 @@ LiquidCrystal_I2C lcd(0x27, 20, 4);
 //RFID Variables
 String tagID = "";
 String masterOnID = "5A797D7F";
-String masterOffID = "347EFD29";
+String masterOffID = "9C52B";
 byte readCard[4];
-boolean successRead, correctTag, masterState= false;
 
 //Timer Variables
-volatile int interruptCounter;
-int interruptCounter0;
-int interruptCounter1;
+volatile int interruptCounter0;
+volatile int interruptCounter1;
+int totalInterruptCounter0;
+int totalInterruptCounter1;
 hw_timer_t * timer0 = NULL;
 hw_timer_t * timer1 = NULL;
 portMUX_TYPE timerMux0 = portMUX_INITIALIZER_UNLOCKED;
 portMUX_TYPE timerMux1 = portMUX_INITIALIZER_UNLOCKED;
+unsigned long now1, now2, past1, past2, onTime1, onTime2 = 0;
 
+int opMode = 0;
 
 void setup() {
   pinMode(redLED, OUTPUT);
@@ -75,65 +77,42 @@ void setup() {
 }
 
 void loop() {
+
+  if (opMode != 9){
+    countdown1(onTime1);
+    countdown2(onTime2);
+  }  
   message = "";
   tagID = "";
   readRFID();
   if (message != ""){
     post(message);
   }
-  if (grant == 2){
-    masterOn();
-  }
-  if (grant == 3){
-    masterOff();
-  }
   
-  if (grant != 0 && grant != 2 && grant != 3){
-  
-    resourceOn(resourceID);
-    lcd.setCursor(0,2);
-    lcd.print("                    ");
-    lcd.setCursor(0,2);
-    lcd.print("READ ID: ");
-    lcd.setCursor(9, 2);
-    lcd.print(tagID);
-      
-    if (resourceID == 1){
-      lcd.setCursor(0, 3);
-      lcd.print("Resource 1 Turned On");
-    }
-    if (resourceID == 2){
-      lcd.setCursor(0, 3);
-      lcd.print("Resource 2 Turned On");
-    }
-
-    delay(5000);
-    resourceOff(resourceID);
-    lcd.setCursor(0, 2);
-    lcd.print("                    ");
-    lcd.setCursor(0, 2);
-    lcd.print("PLEASE SWIPE ID CARD");
-    lcd.setCursor(0,3);
-    lcd.print("                    ");
-  }
-  if (grant == 0 && tagID != ""){
-    lcd.setCursor(0,2);
-    lcd.print("                    ");
-    lcd.setCursor(0,2);
-    lcd.print("READ ID: ");
-    lcd.setCursor(9, 2);
-    lcd.print(tagID);
-    lcd.setCursor(0, 3);
-    lcd.print("Access Denied");
-    delay(3000);
-    lcd.setCursor(0, 2);
-    lcd.print("PLEASE SWIPE ID CARD");
-    lcd.setCursor(0,3);
-    lcd.print("                    ");
-  }
-
 }
 
+void countdown1(int onTime1){
+  now1 = millis();
+  Serial.print("Now 1: ");
+  Serial.println(now1);
+  Serial.print("Countdown 1: ");
+  Serial.println(onTime1);
+  if((now1 > onTime1) && (digitalRead(relay1) == LOW)){
+    digitalWrite(relay1,HIGH);
+  }
+}
+
+void countdown2(int onTime2){
+  now2 = millis();
+  Serial.print("Now 2: ");
+  Serial.println(now2);
+  Serial.print("Countdown 2: ");
+  Serial.println(onTime2);
+  if((now2 > onTime2) && (digitalRead(relay2) == LOW)){
+    digitalWrite(relay2,HIGH);
+  }
+}
+  
 void readRFID(){
   if ( ! rfid.PICC_IsNewCardPresent()) { //If a new PICC placed to RFID reader continue
     return;
@@ -155,55 +134,6 @@ void readRFID(){
   }
 }
 
-//Timer Code
-void IRAM_ATTR onTimer0(){
-  portENTER_CRITICAL_ISR(&timerMux0);
-  interruptCounter0++;
-  portEXIT_CRITICAL_ISR(&timerMux0);
-}
-
-void IRAM_ATTR onTimer1(){
-  portENTER_CRITICAL_ISR(&timerMux1);
-  interruptCounter1++;
-  portEXIT_CRITICAL_ISR(&timerMux1);
-}
-
-void relay1_Timer(){
-  timer0 = timerBegin(0, 80, true);
-  timerAttachInterrupt(timer0, &onTimer0, true);
-  timerAlarmWrite(timer0, 1000000, true);
-  yield();
-  timerAlarmEnable(timer0);
-}
-
-void relay2_Timer(){
-  timer1 = timerBegin(1, 80, true);
-  timerAttachInterrupt(timer1, &onTimer1, true);
-  timerAlarmWrite(timer1, 1000000, true);
-  yield();
-  timerAlarmEnable(timer1);
-}
-
-void stopRelay1_Timer(int endTime1){
-  if (interruptCounter0 == endTime1){
-    timerAlarmDisable(timer0);
-    timerDetachInterrupt(timer0);
-    timerEnd(timer0);
-    timer0 = NULL;
-    interruptCounter0 = 0;
-  }
-}
-
-void stopRelay2_Timer(int endTime2){
-  if (interruptCounter1 == endTime2){
-    timerAlarmDisable(timer1);
-    timerDetachInterrupt(timer1);
-    timerEnd(timer1);
-    timer1 = NULL;
-    interruptCounter1 = 0;
-  }
-}
-
 //Control Resources
 void resourceOn(int resourceID){
   if (resourceID == 1){
@@ -217,31 +147,50 @@ void resourceOn(int resourceID){
 void resourceOff(int resourceID){
   if (resourceID == 1){
     digitalWrite(relay1, HIGH);
+    onTime1 = 0;
   }
   if (resourceID == 2){
     digitalWrite(relay2, HIGH);
+    onTime2 = 0;
   }
-  grant = 0;
 }
 
 void masterOn(){
+  opMode = 9;
   digitalWrite(relay1, LOW);
   digitalWrite(relay2, LOW);
+  onTime1 = 0;
+  onTime2 = 0;
+  now1 = 0;
+  now2 = 0;
+  lcd.setCursor(0,3);
+  lcd.print("                    ");
+  lcd.setCursor(0,3);
+  lcd.print("     MASTER  ON     ");
 }
 
 void masterOff(){
   digitalWrite(relay1, HIGH);
   digitalWrite(relay2, HIGH);
+  onTime1 = 0;
+  onTime2 = 0;
+  lcd.setCursor(0,3);
+  lcd.print("                    ");
+  opMode = 0;
 }
 
 //HTTP Code
 void connectToNetwork(){
   
   WiFi.begin(ssid, password);
- 
+  int tryCount = 0;
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
     Serial.println("Establishing connection to WiFi..");
+    tryCount++;
+    if (tryCount == 5){
+      ESP.restart();
+    }
   }
  
   Serial.print("Connected to network: ");
@@ -274,17 +223,82 @@ void post(String message){
     String endTimeVar = httpResponse.substring(4);
     String testVar = stateString + "," + resourceIDString + "," + endTimeVar;
     Serial.println(testVar);
+
+    endTime = endTimeVar.toInt() * 1000;
     
     //Integer Values for permission, resourceID and time
-    grant = stateString.toInt();
-    if (tagID == masterOnID){
-      grant = 2;
+    if ((stateString == "1")&&(resourceIDString == "3")){
+      masterOn();
     }
-    if (tagID == masterOffID){
-      grant = 3;
+    if ((stateString == "0")&&(resourceIDString == "3")){
+      masterOff();
     }
-    resourceID = resourceIDString.toInt();
-    endTime = endTimeVar.toInt();
+    if ((stateString == "1")&&(resourceIDString == "1")){
+      onTime1 = now1 + endTime;
+      resourceOn(1);
+      countdown1(onTime1);
+      lcd.setCursor(0,2);
+      lcd.print("                    ");
+      lcd.setCursor(0,2);
+      lcd.print("CARD READ: ");
+      lcd.setCursor(10,2);
+      lcd.print(tagID);
+      lcd.setCursor(0,3);
+      lcd.print("  ACCESS GRANTED  ");
+      delay(5000);
+      lcd.setCursor(0,2);
+      lcd.print("                    ");
+      lcd.setCursor(0,2);
+      lcd.print("PLEASE SWIPE ID CARD");
+      lcd.setCursor(0,3);
+      lcd.print("                    ");
+    }
+    if ((stateString == "1")&&(resourceIDString == "2")){
+      onTime2 = now2 + endTime - 5000;
+      resourceOn(2);
+      countdown2(onTime2);
+      lcd.setCursor(0,2);
+      lcd.print("                    ");
+      lcd.setCursor(0,2);
+      lcd.print("CARD READ: ");
+      lcd.setCursor(10,2);
+      lcd.print(tagID);
+      lcd.setCursor(0,3);
+      lcd.print("  ACCESS GRANTED  ");
+      delay(5000);
+      lcd.setCursor(0,2);
+      lcd.print("                    ");
+      lcd.setCursor(0,2);
+      lcd.print("PLEASE SWIPE ID CARD");
+      lcd.setCursor(0,3);
+      lcd.print("                    ");
+    }
+    if ((stateString == "0")&&(resourceIDString == "N")){
+      lcd.setCursor(0,2);
+      lcd.print("                    ");
+      lcd.setCursor(0,2);
+      lcd.print("  CARD READ: ");
+      lcd.setCursor(10,2);
+      lcd.print(tagID);
+      lcd.setCursor(0,3);
+      lcd.print("  ACCESS Denied  ");
+      delay(4000);
+      lcd.setCursor(0,2);
+      lcd.print("                    ");
+      lcd.setCursor(0,3);
+      lcd.print("                    ");
+      lcd.setCursor(0,2);
+      lcd.print("  NO BOOKING FOUND  ");
+      lcd.setCursor(0,3);
+      lcd.print(" CONTACT MANAGEMENT ");
+      delay(4000);
+      lcd.setCursor(0,2);
+      lcd.print("                    ");
+      lcd.setCursor(0,3);
+      lcd.print("                    ");
+      lcd.setCursor(0,2);
+      lcd.print("PLEASE SWIPE ID CARD");
+    }
     http.end();
   }
   else{

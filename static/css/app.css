@@ -127,8 +127,8 @@ padding-top: 16px;
 }
 
 /*Forms*/
-input[type=text],input[type=address], input[type=date],input[type=time], select, textarea {
-  width: 100%;
+input[type=text],input[type=email], input[type=date],input[type=time],input[type=password],select, textarea {
+  width: 80%;
   padding: 12px;
   border: 1px solid #ccc;
   border-radius: 4px;
@@ -141,7 +141,7 @@ label {
 }
 
 button,input[type=submit] {
-  background-color: #4CAF50;
+  background-color: #4c8baf;
   color: white;
   padding: 12px 20px;
   border: none;
@@ -169,17 +169,7 @@ input[type=submit]:hover {
   width: 75%;
   margin-top: 6px;
 }
-.col-25-2 {
-  float: left;
-  width: 25%;
-  margin-top: 12px;
-}
 
-.col-75-2 {
-  float: left;
-  width: 75%;
-  margin-top: 12px;
-}
 
 /* Clear floats after the columns */
 .row:after {
@@ -190,7 +180,7 @@ input[type=submit]:hover {
 table {
   font-family: arial, sans-serif;
   border-collapse: collapse;
-  width: 100%;
+  width: 70%;
 }
 
 td, th {

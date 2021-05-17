@@ -82,54 +82,57 @@
         </form>
 
     </div>
-    <div>
-        <h2>Active Users</h2>
-    </div>
-     
-        <table> 
-            <thead>
+    <div class="container">
+        <div>
+            <h2>Active Users</h2>
+        </div>
+         
+            <table> 
+                <thead>
+                    <tr>
+                        <th> First Name </th>
+                        <th> Last Name </th>
+                        <th> Username </th> 
+                    </tr>
+                </thead>
+                {% for names in username %}
+        
                 <tr>
-                    <th> First Name </th>
-                    <th> Last Name </th>
-                    <th> Username </th> 
+        
+                    <td> {{firstname[username.index(names)]}} </td>
+                    <td> {{lastname[username.index(names)]}} </td>
+                    <td> {{names}} </td>
+               
                 </tr>
-            </thead>
-            {% for names in username %}
-    
-            <tr>
-    
-                <td> {{firstname[username.index(names)]}} </td>
-                <td> {{lastname[username.index(names)]}} </td>
-                <td> {{names}} </td>
-           
-            </tr>
-            {% endfor %}
-        </table>
-    <div>
-    <div>
-        <h2>Inactive Users</h2>
-    </div>
-     
-        <table> 
-            <thead>
+                {% endfor %}
+            </table>
+        <div>
+        <div>
+            <h2>Inactive Users</h2>
+        </div>
+         
+            <table> 
+                <thead>
+                    <tr>
+                        <th> First Name </th>
+                        <th> Last Name </th>
+                        <th> Username </th> 
+                    </tr>
+                </thead>
+                {% for names in username2 %}
+        
                 <tr>
-                    <th> First Name </th>
-                    <th> Last Name </th>
-                    <th> Username </th> 
+        
+                    <td> {{firstname2[username2.index(names)]}} </td>
+                    <td> {{lastname2[username2.index(names)]}} </td>
+                    <td> {{names}} </td>
+               
                 </tr>
-            </thead>
-            {% for names in username2 %}
-    
-            <tr>
-    
-                <td> {{firstname2[username2.index(names)]}} </td>
-                <td> {{lastname2[username2.index(names)]}} </td>
-                <td> {{names}} </td>
-           
-            </tr>
-            {% endfor %}
-        </table>
-    <div>
+                {% endfor %}
+            </table>
+        <div>
+    </div>
+
 
     <div class="container">
         <form action="" method="POST">

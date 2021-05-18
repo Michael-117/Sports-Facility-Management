@@ -2,93 +2,95 @@
 
 {% block main%}
 {% include 'flash_messages.html' %}
-<div class = "bookings"> 
+<div class = "title"> 
     <div>Booking</div>
 </div>
-
 <div class="container">
-    <form action="" method = 'POST'> 
-        <div class="row">
-            <div class="col-25">
-                <label for="dropdown">Choose a range:</label>
+    
+        <form action="" method = 'POST'> 
+            <div class="row">
+                <div class="col-25">
+                    <label for="dropdown">Choose a range:</label>
+                </div>
+    
+                <div class="col-75">
+                    <select name="range" id="range">
+                        <option value="today">Today</option>
+                        <option value="week">Week</option>
+                        <option value="month">Month</option>
+                    </select>
+                </div>
+    
             </div>
-
-            <div class="col-75">
-                <select name="range" id="range">
-                    <option value="today">Today</option>
-                    <option value="week">Week</option>
-                    <option value="month">Month</option>
-                </select>
+            <div class="row">
+                <input type="submit" value ="Submit" name="viewBooking">
             </div>
+        </form>
 
-        </div>
-        <div class="row">
-            <input type="submit" value ="Submit" name="viewBooking">
-        </div>
-    </form>
-</div>
-<div class="container">
-    <form action="" method="POST">
-        <table> 
-            <thead>
+    
+        <form action="" method="POST">
+            <table> 
+                <thead>
+                    <tr>
+                        <th> Booking ID </th>
+                        <th> Booking Creation Date/Time </th>
+                        <th> Resource </th>
+                        <th> Facility </th>
+                        <th> Start Time </th>
+                        <th> End Time </th>
+                        <th> Use Date </th>
+                        <th> Status </th>
+                        {% if g.user.userType == 'admin' %}
+                        <th> Username </th>
+                        {% endif %}
+                    </tr>
+                </thead>
+        
+                {% for i in bookingids %}
                 <tr>
-                    <th> Booking ID </th>
-                    <th> Booking Creation Date/Time </th>
-                    <th> Resource </th>
-                    <th> Facility </th>
-                    <th> Start Time </th>
-                    <th> End Time </th>
-                    <th> Use Date </th>
-                    <th> Status </th>
+                    <td> {{i}} </td>
+                    <td> {{bookingdatetime[bookingids.index(i)]}} </td>
+                    <td> {{resourcenames[bookingids.index(i)]}} </td>
+                    <td> {{facilitynames[bookingids.index(i)]}} </td>
+                    <td> {{starttimes[bookingids.index(i)]}} </td>
+                    <td> {{endtimes[bookingids.index(i)]}} </td>
+                    <td> {{usedate[bookingids.index(i)]}} </td>
+                    <td> {{status[bookingids.index(i)]}} </td>
                     {% if g.user.userType == 'admin' %}
-                    <th> Username </th>
+                    <td> {{usernames[bookingids.index(i)]}} </td>
                     {% endif %}
                 </tr>
-            </thead>
+                {% endfor %}
+            </table>
+        </form>
     
-            {% for i in bookingids %}
-            <tr>
-                <td> {{i}} </td>
-                <td> {{bookingdatetime[bookingids.index(i)]}} </td>
-                <td> {{resourcenames[bookingids.index(i)]}} </td>
-                <td> {{facilitynames[bookingids.index(i)]}} </td>
-                <td> {{starttimes[bookingids.index(i)]}} </td>
-                <td> {{endtimes[bookingids.index(i)]}} </td>
-                <td> {{usedate[bookingids.index(i)]}} </td>
-                <td> {{status[bookingids.index(i)]}} </td>
-                {% if g.user.userType == 'admin' %}
-                <td> {{usernames[bookingids.index(i)]}} </td>
-                {% endif %}
-            </tr>
-            {% endfor %}
-        </table>
-    </form>
-</div>
-
-
-<div class="container">
-    <form action="" method = 'POST'> 
-        <div class="row">
-            <div class="col-25">
-                <label for="dropdown">Cancel a Booking:</label>
+    
+    
+    
+        <form action="" method = 'POST'> 
+            <div class="row">
+                <div class="col-25">
+                    <label for="dropdown">Cancel a Booking:</label>
+                </div>
+    
+                <div class="col-75">
+                    <select name="bookingid" >
+                        <option value="" selected disabled> Select Booking ID to Cancel</option>
+                        {% for i in bookingids %}
+                            {% if status[bookingids.index(i)] == 'Upcoming' %}
+                                <option value="{{i}}">Booking ID: {{i}}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+    
             </div>
-
-            <div class="col-75">
-                <select name="bookingid" >
-                    <option value="" selected disabled> Select Booking ID to Cancel</option>
-                    {% for i in bookingids %}
-                        {% if status[bookingids.index(i)] == 'Upcoming' %}
-                            <option value="{{i}}">Booking ID: {{i}}</option>
-                        {% endif %}
-                    {% endfor %}
-                </select>
+            <div class="row">
+                <input type="submit" value ="Submit" name="cancel">
             </div>
-
-        </div>
-        <div class="row">
-            <input type="submit" value ="Submit" name="cancel">
-        </div>
-    </form>
+        </form>
+    
+    
 </div>
 
 {% endblock %}

@@ -1353,7 +1353,6 @@ def assign():
                 conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
                 cur = conn.cursor()
 
-                
                 sql = "SELECT cardID FROM Cards WHERE userID = (SELECT userID FROM SFMSUser WHERE username = %s)"
                 sqlVar = (username,)
 
@@ -1361,13 +1360,14 @@ def assign():
                 cur.execute(sql, sqlVar)
                 result = cur.fetchall()
 
-                sql = "UPDATE Cards SET userID = '1' WHERE cardID = %s"
-                sqlVar = (result[0][0],)
-                print(sql,sqlVar)
+                if result:
+                    sql = "UPDATE Cards SET userID = '1' WHERE cardID = %s"
+                    sqlVar = (result[0][0],)
+                    print(sql,sqlVar)
 
-                #Run SQL Query
-                cur.execute(sql, sqlVar)
-                conn.commit()
+                    #Run SQL Query
+                    cur.execute(sql, sqlVar)
+                    conn.commit()
 
                 sql = "UPDATE Cards SET userID = (SELECT userID FROM SFMSUser WHERE username = %s) WHERE cardID = %s"
                 sqlVar = (username, chosenRFID)
@@ -1616,17 +1616,6 @@ def verifyBooking():
                 startVar = result[-1][2]
                 endVar = result[-1][3]
 
-                sql = "UPDATE Booking SET status = 'Kept' WHERE bookingID = %s"
-                sqlVar = (bookingID,)
-                cur.execute(sql, sqlVar)
-                conn.commit()
-
-                cur.close()
-                conn.close()
-
-                # start = datetime.datetime.strptime(str(startVar), '%H:%M:%S')
-                # end = datetime.datetime.strptime(str(endVar), '%H:%M:%S').strftime('%H:%M:%S')
-
                 nowVar = datetime.datetime.now().strftime("%H:%M:%S")
                 start = str(startVar)
                 end = str(endVar)
@@ -1636,6 +1625,13 @@ def verifyBooking():
                 timeVar = timeLeft(nowVar, end)
 
                 if (datetime.datetime.strptime(start, "%H:%M:%S").time() <= now) and (now <= datetime.datetime.strptime(end, "%H:%M:%S").time()):
+                    sql = "UPDATE Booking SET status = 'Kept' WHERE bookingID = %s"
+                    sqlVar = (bookingID,)
+                    cur.execute(sql, sqlVar)
+                    conn.commit()
+
+                    cur.close()
+                    conn.close()
                     message = "1," + str(resource) + "," + str(timeVar)
                 else:
                     message = "0"

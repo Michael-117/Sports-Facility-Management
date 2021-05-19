@@ -2,39 +2,39 @@
                     Table of Contents
 ------------------------------------------------------
 ------------------------------------------------------
-Imports                     =           Lines
-Global Variables            =           Lines
+Imports                     =           Line 42
+Global Variables            =           Line 54
 
                         Classes                   
 ---------------------------------------------------
-User class                  =           Lines 
-
+User class                  =           Line 94
+---------------------------------------------------
                     Helper Functions
 ---------------------------------------------------
-timeLeft function           =           Lines 
-getTimes function           =           Lines 
-generateSessions function   =           Lines 
+allowed_file                =           Line 107
+timeLeft                    =           Line 112
+getTimes                    =           Line 122
+generateSessions            =           Line 132
+updateBookingStatuses       =           Line 180
 ---------------------------------------------------
-
-                    App Functions
+                     App Functions
 ---------------------------------------------------
-app.before_request          =           Lines 
-Logout                      =           Lines 
-Base                        =           Lines 
-Header                      =           Lines 
-Footer                      =           Lines 
-ErrorPage                   =           Lines 
-Login                       =           Lines 
-Home                        =           Lines 
-Profile                     =           Lines 
-Booking                     =           Lines 
-View Booking                =           Lines
-Facility Management         =           Lines 
-Resource Management         =           Lines
-User Management             =           Lines  
-Card Management             =           Lines 
-System Logs                 =           Lines 
-Verify Booking              =           Lines 
+app.before_request          =           Line 200
+Login                       =           Line 215
+Logout                      =           Line 263
+Header                      =           Line 269
+Base                        =           Line 274
+Home                        =           Line 279
+Footer                      =           Line 284
+Profile                     =           Line 291
+Booking                     =           Line 369
+View Booking                =           Line 575
+Facility Management         =           Line 707
+Resource Management         =           Line 829
+User Management             =           Line 917
+Card Management             =           Line 1074
+System Logs                 =           Line 1210
+Verify Booking              =           Line 1297
 """
 
 """Imports"""
@@ -63,11 +63,14 @@ lastMonthString = lastMonth.strftime("%Y-%m-%d")
 twoWeeksAgoString = twoWeeksAgo.strftime("%Y-%m-%d")
 lastWeekString = lastWeek.strftime("%Y-%m-%d")
 dateToday = now.strftime("%Y-%m-%d")
-#dateTomorrowString = dateTomorrow.strftime("%Y-%m-%d")
 nextWeekString = nextWeek.strftime("%Y-%m-%d")
 nextMonthString = nextMonth.strftime("%Y-%m-%d")
 timeNow = now.strftime("%H:%M:%S")
 timeNow2 = now.strftime("%H:%M")
+dateString1 = dateToday + " 00:00:00"
+dateString2 = dateToday + " 23:59:59"
+weekString = lastWeekString + " 00:00:00"
+monthString = lastMonthString + " 00:00:00"
 users = []
 
 UPLOAD_FOLDER = '/var/www/html/FlaskApp/SFMS/static/uploads'
@@ -105,7 +108,7 @@ def allowed_file(filename):
     return '.' in filename and \
            filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-#Function to calculate time remaining for a booking based off current time, booking end time and a preset grace period
+#Function to calculate time remaining for a booking based off current time and booking end time
 def timeLeft(nowTime: str, endTime: str):
     nowVals = nowTime.split(":")
     endVals = endTime.split(":")
@@ -172,9 +175,26 @@ def generateSessions(sessionLength: str, gracePeriod: str, dateToday: str):
             sTimes.append(endTimes[i])
 
     return sessionTimes, sTimes, dates
-    
 
-"""App Functions"""
+#Update Booking statuses based on current time    
+def updateBookingStatuses():
+    try:
+        now = datetime.datetime.now()
+        tn2 = now.strftime("%H:%M:%S")
+
+        #Connect to DB
+        conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
+        cur = conn.cursor()
+        sql = "UPDATE Booking SET status = 'Ended' WHERE useDate <= CONVERT(%s, DATE) AND status = 'Upcoming' AND useEnd <= CONVERT(%s, TIME)"
+        sqlVar = (dateToday, tn2)
+        cur.execute(sql, sqlVar)
+        conn.commit()
+        cur.close()
+        conn.close()
+    except mariadb.Error as e:
+        print(f"Error: {e}")
+
+"""Basic App Functions"""
 
 #Check for session before each request, create global variable with logged in user for use with other pages on domain
 @app.before_request
@@ -185,36 +205,12 @@ def before_request():
             if x.id == session['user_ID']:
                 g.user = x
 
-@app.route('/currtime.json')
-def getTime():
-    return datetime.datetime.now().strftime("%H:%M")
+    #Check if there is a user stored in global variable i.e. Someone is logged in
+    if not g.user:
+        flash("You must log in for access")
+        return redirect('/SFMS/login')
 
-@app.route('/logout')
-def logout():
-    flash('You were logged out')
-    return redirect('/SFMS/login')
-
-#Base Page
-@app.route('/base')
-def base():
-    return render_template('base.html')
-
-#Header
-@app.route('/header')
-def header():
-    return render_template('header.html')
-
-#Footer
-@app.route('/footer')
-def footer():
-    return render_template('footer.html', time= getTime())
-
-#Error Page
-@app.route('/errorpage')
-def errorpage():
-    return render_template('404.html')
-
-#Login Page
+#Login
 @app.route('/login', methods=['post', 'get'])
 def login():
 
@@ -223,30 +219,30 @@ def login():
 
     if(request.method=='POST'):
 
-	#Get username and password from POST request
+	    #Get username and password from POST request
         username = request.form.get('username')
         passwordEntry = request.form.get('password')
 
-	#Hash password with SHA256 Algorithm
+	    #Hash password with SHA256 Algorithm
         entryPasswordHash = hashlib.sha256(passwordEntry.encode('utf-8')).hexdigest()
 
         try:
-	    #Connect to DB
+	        #Connect to DB
             conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
             cur = conn.cursor()
 
-	    #Create SQL Query
+	        #Search for user by username
             sql = "SELECT sesame, userID, firstName, userType FROM SFMSUser WHERE username = %s"
             sqlVar = (username, )
-
-	    #Run SQL Query and retrieve records
             cur.execute(sql, sqlVar)
             result = cur.fetchall()
 
+            #If user invalid, return to login screen
             if not result:
+                flash("User not found")
                 return render_template('login.html')
 
-	    #Test for password match
+	        #Test for password match
             if result[0][0] == entryPasswordHash:
 
     	        #Create Session
@@ -254,46 +250,66 @@ def login():
                 users.append(User(result[0][1], username, result[0][2], result[0][3]))
                 cur.close()
                 conn.close()
-
                 flash('You have successfully logged in')
                 #Redirect to profile page
                 return redirect('/SFMS/profile')
-
         except mariadb.Error as e:
             print(f"Error: {e}")
 
     return render_template('login.html')
 
-#Home Page
+#Logout
+@app.route('/logout')
+def logout():
+    flash('You were logged out')
+    return redirect('/SFMS/login')
+
+#Webpage Header
+@app.route('/header')
+def header():
+    return render_template('header.html')
+
+#Base Webpage
+@app.route('/base')
+def base():
+    return render_template('base.html')
+
+#App Home Page
 @app.route('/')
 def home():
     return render_template('home.html')
 
+#Webpage Footer
+@app.route('/footer')
+def footer():
+    return render_template('footer.html')
+
+"""App Functions"""
+
 #Profile Page
 @app.route('/profile', methods=['post','get'])
 def profile():
-    #Check if there is a user stored in global variable i.e. Someone is logged in
-    if not g.user:
-        return redirect('/SFMS/login')
+    
+    #Get user image
 
     try:
         #Connect to DB
         conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
         cur = conn.cursor()
-
-        #Create SQL Query
         sql = "SELECT image FROM SFMSUser WHERE userID = %s"
         sqlVar = (g.user.id,)
-
-        #Run SQL Query
         cur.execute(sql,sqlVar)
         result = cur.fetchone()
         imageURL = result[0]
+        cur.close()
+        conn.close()
         
     except mariadb.Error as e:
                 print(f"Error: {e}")
 
     if (request.method == 'POST'):
+
+        #Change user password
 
         if 'change' in request.form:
             password = request.form.get('p2')
@@ -302,27 +318,22 @@ def profile():
                 #Connect to DB
                 conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
                 cur = conn.cursor()
-
-                #Create SQL Query
                 sql = "UPDATE SFMSUser SET sesame = %s WHERE userID = %s"
                 sqlVar = (hashedPassword, g.user.id)
-
-                #Run SQL Query
                 cur.execute(sql,sqlVar)
                 conn.commit()
                 cur.close()
                 conn.close()
-                
             except mariadb.Error as e:
                 print(f"Error: {e}")
 
             flash('Password changed successfully')
             return redirect('/SFMS/profile')
         
+        #Upload new user image
+
         if 'upload' in request.form:
-            
             if 'file' not in request.files:
-                
                 flash('No Picture Uploaded')
                 return redirect('/SFMS/profile')
 
@@ -336,35 +347,26 @@ def profile():
                 imageRef = "/SFMS/static/uploads/" + "noimage.png"
 
             try:
-            #Connect to DB
+                #Connect to DB
                 conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
                 cur = conn.cursor()
-
-                #Create SQL Query
                 sql = "UPDATE SFMSUser SET image = %s WHERE userid = %s"
                 sqlVar = (imageRef, g.user.id)
-
-                #Run SQL Query
                 cur.execute(sql,sqlVar)
-
                 conn.commit()           
                 cur.close()
                 conn.close()
-
             except mariadb.Error as e:
                     print(f"Error: {e}")
 
             flash('Profile picture changed successfully')
             return redirect('/SFMS/profile')
 
-
     return render_template('profile.html', image = imageURL)
 
 #Create Booking
 @app.route('/booking', methods=['post', 'get'])
 def booking():
-    if not g.user:
-        return redirect('/SFMS/login')
 
     facilitynames = []
     facilityids = []
@@ -376,15 +378,12 @@ def booking():
     sessions1ids = []
     sessions2ids = []
     
+    #Retrieve System Users and Facilities
     try:
         #Connect to DB
         conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
         cur = conn.cursor()
-
-        #Create SQL Query
         sql = "SELECT facilityName, facilityID FROM Facility"
-
-        #Run SQL Query
         cur.execute(sql,)
         result = cur.fetchall()
 
@@ -392,10 +391,7 @@ def booking():
             facilitynames.append(result[i][0])
             facilityids.append(result[i][1])
         
-        #Create SQL Query
         sql = "SELECT username, userID FROM SFMSUser"
-
-        #Run SQL Query
         cur.execute(sql,)
         result = cur.fetchall()
 
@@ -409,11 +405,12 @@ def booking():
     except mariadb.Error as e:
                 print(f"Error: {e}")
 
-    #Retrieve POST Request Data
     if (request.method == 'POST'):
         now = datetime.datetime.now()
         tn2 = now.strftime("%H:%M:%S")
 
+
+        # Search for available resources and booking session slots by facility
 
         if "search" in request.form:
             facilityID = request.form.get('facilityID')
@@ -426,43 +423,39 @@ def booking():
                 #Connect to DB
                 conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
                 cur = conn.cursor()
-
-                #Create SQL Query
                 sql = "SELECT facilityName FROM Facility WHERE facilityID = %s"
                 sqlVar = (facilityID,)
-
-                #Run SQL Query
                 cur.execute(sql, sqlVar)
                 result = cur.fetchone()
                 facilityName = result[0]
                 tableVar = facilityName.split(" ")
                 tablename = tableVar[0][0] + tableVar[1][0] + "R"
-
-                #Create SQL Query
                 sql = "SELECT resourceNumber FROM Resources WHERE facilityID = %s AND status = %s"
                 sqlVar = (facilityID,"Available")
-
-                #Run SQL Query
                 cur.execute(sql, sqlVar)
                 result = cur.fetchall()
 
                 for i in range(0,len(result)):
-
                     tablenameRes = tablename + str(result[i][0])
 
-                    #Create SQL Query
-                    sql = "SELECT sessionRange, slotID FROM {} WHERE date = %s AND startTime >= CONVERT(%s, TIME) AND status = 'free' ".format(tablenameRes)
-                    sqlVar = (date, tn2)
+                    #Retrieve free booking session slots for today with time later than now
+                    if date == dateToday:
+                        sql = "SELECT sessionRange, slotID FROM {} WHERE date = %s AND startTime >= CONVERT(%s, TIME) AND status = 'free' ".format(tablenameRes)
+                        sqlVar = (date, tn2)
+                        cur.execute(sql, sqlVar)
+                        result2 = cur.fetchall()
 
-                    #Run SQL Query
-                    cur.execute(sql, sqlVar)
-                    result2 = cur.fetchall()
+                    #Retrieve free booking session slots for selected date
+                    else:  
+                        sql = "SELECT sessionRange, slotID FROM {} WHERE date = %s AND status = 'free' ".format(tablenameRes)
+                        sqlVar = (date, tn2)
+                        cur.execute(sql, sqlVar)
+                        result2 = cur.fetchall()
 
                     if result[i][0] == 1:
                         for j in range(0,len(result2)):
                             sessions1.append(result2[j][0])
                             sessions1ids.append(result2[j][1])
-
                     if result[i][0] == 2:
                         for j in range(0,len(result2)):
                             sessions2.append(result2[j][0])
@@ -470,12 +463,12 @@ def booking():
 
                 cur.close()
                 conn.close()
-
             except mariadb.Error as e:
                 print(f"Error: {e}")
             
             return render_template('booking2.html', sessions1 = sessions1, sessions2 = sessions2, facilityName = facilityName, facilityID = facilityID, date = date, sessions1ids = sessions1ids, sessions2ids = sessions2ids, tbl = tablename, user = execuserID)
 
+        #Booking Resource 1
         if "book1" in request.form:
             date = request.form.get('date')
             session = request.form.get('r1choice')
@@ -497,45 +490,35 @@ def booking():
                 conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
                 cur = conn.cursor()
 
+                #Admin booking for another user
                 if g.user.userType == 'admin':
-                    #Create SQL Query
                     sql = "INSERT INTO `Booking`(`resourceNumber`, `facilityID`, `useStart`, `useEnd`, `useDate`, `userID`) VALUES (%s,%s,%s,%s,%s,%s)"
                     sqlVar = (resourceNum, facilityID, start, end, date, execuserID)
-
+                
+                #Normal Booking
                 else:
-                    #Create SQL Query
                     sql = "INSERT INTO `Booking`(`resourceNumber`, `facilityID`, `useStart`, `useEnd`, `useDate`, `userID`) VALUES (%s,%s,%s,%s,%s,%s)"
                     sqlVar = (resourceNum, facilityID, start, end, date, g.user.id)
 
-                #Run SQL Query
                 cur.execute(sql, sqlVar)
                 conn.commit()
-
-                #Create SQL Query
                 sql = "SELECT MAX(bookingID) FROM Booking"
-                #Run SQL Query
                 cur.execute(sql,)
                 result = cur.fetchone()
                 bookingID = result[0]
-
-                #Create SQL Query
                 sql = "UPDATE {} SET status = 'booked', bookingID = %s WHERE slotID = %s".format(tablename)
                 sqlVar = (bookingID, sessionID)
-
-                #Run SQL Query
                 cur.execute(sql, sqlVar)
                 conn.commit()
-
                 cur.close()
                 conn.close()
-
             except mariadb.Error as e:
                 print(f"Error: {e}")
 
             flash('Booking created successfully for Resource 1')
             return redirect('/SFMS/booking')
 
-
+        #Booking Resource 2
         if "book2" in request.form:
             date = request.form.get('date')
             session = request.form.get('r2choice')
@@ -556,46 +539,40 @@ def booking():
                 conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
                 cur = conn.cursor()
 
-                #Create SQL Query
-                sql = "INSERT INTO `Booking`(`resourceNumber`, `facilityID`, `useStart`, `useEnd`, `useDate`, `userID`) VALUES (%s,%s,%s,%s,%s,%s)"
-                sqlVar = (resourceNum, facilityID, start, end, date, g.user.id)
+                #Admin booking for another user
+                if g.user.userType == 'admin':
+                    sql = "INSERT INTO `Booking`(`resourceNumber`, `facilityID`, `useStart`, `useEnd`, `useDate`, `userID`) VALUES (%s,%s,%s,%s,%s,%s)"
+                    sqlVar = (resourceNum, facilityID, start, end, date, execuserID)
+                
+                #Normal Booking
+                else:
+                    sql = "INSERT INTO `Booking`(`resourceNumber`, `facilityID`, `useStart`, `useEnd`, `useDate`, `userID`) VALUES (%s,%s,%s,%s,%s,%s)"
+                    sqlVar = (resourceNum, facilityID, start, end, date, g.user.id)
 
                 #Run SQL Query
                 cur.execute(sql, sqlVar)
                 conn.commit()
-
-                #Create SQL Query
                 sql = "SELECT MAX(bookingID) FROM Booking"
-                #Run SQL Query
                 cur.execute(sql,)
                 result = cur.fetchone()
                 bookingID = result[0]
-
-                #Create SQL Query
                 sql = "UPDATE {} SET status = 'booked', bookingID = %s WHERE slotID = %s".format(tablename)
                 sqlVar = (bookingID, sessionID)
-
-                #Run SQL Query
                 cur.execute(sql, sqlVar)
                 conn.commit()
-
                 cur.close()
                 conn.close()
-
             except mariadb.Error as e:
                 print(f"Error: {e}")
 
             flash('Booking created successfully for Resource 2')
             return redirect('/SFMS/booking')
-
         
     return render_template('booking1.html', facilityName = facilitynames, facilityids = facilityids, today = dateToday, endRange = nextMonthString, usernames = usernames, userids = userids)
 
 #View Bookings
 @app.route('/viewbooking', methods = ['post', 'get'])
 def viewbooking():
-    if not g.user:
-        return redirect('/SFMS/login')
 
     bookingids = []
     bookingdatetime = []
@@ -611,29 +588,10 @@ def viewbooking():
     status = []
     tableNames = []
     
-    try:
-        now = datetime.datetime.now()
-        tn2 = now.strftime("%H:%M:%S")
+    updateBookingStatuses()
 
-        #Connect to DB
-        conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
-        cur = conn.cursor()
-
-        #Create SQL Query
-        sql = "UPDATE Booking SET status = 'Ended' WHERE useDate <= CONVERT(%s, DATE) AND status = 'Upcoming' AND useEnd <= CONVERT(%s, TIME)"
-        sqlVar = (dateToday, tn2)
-
-        #Run SQL Query
-        cur.execute(sql, sqlVar)
-        conn.commit()
-        cur.close()
-        conn.close()
-
-    except mariadb.Error as e:
-        print(f"Error: {e}")
-
+    #Retrieve bookings based on member type 
     if(request.method == 'POST'):
-
         if 'viewBooking' in request.form:
             viewRange = request.form.get('range')
 
@@ -704,10 +662,10 @@ def viewbooking():
 
                 cur.close()
                 conn.close()
-
             except mariadb.Error as e:
                 print(f"Error: {e}")
 
+        #Cancel by ID
         if 'cancel' in request.form:
             bookingID = request.form.get('bookingid')
 
@@ -715,41 +673,27 @@ def viewbooking():
                 #Connect to DB
                 conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
                 cur = conn.cursor()
-                
-
-
                 sql = "SELECT facilityID, resourceNumber FROM Booking WHERE bookingID = %s"
                 sqlVar = (bookingID,)
-                print(sql,sqlVar)
                 cur.execute(sql, sqlVar)
                 result = cur.fetchone()
-                print(result)
-
                 resourceNum = result[1]
-
                 sql = "SELECT facilityName FROM Facility WHERE facilityID = %s"
                 sqlVar = (result[0],)
                 cur.execute(sql, sqlVar)
                 facilityName = cur.fetchone()
-
                 tableVar = facilityName[0].split(" ")
                 tablename = tableVar[0][0] + tableVar[1][0] + "R" + str(resourceNum)
-
-
                 sql = "UPDATE Booking SET status = 'Cancelled' WHERE bookingID = %s"
                 sqlVar = (bookingID,)
                 cur.execute(sql, sqlVar)
                 conn.commit()
-
                 sql = "UPDATE {} SET status = 'free', bookingID = NULL WHERE bookingID = %s".format(tablename)
                 sqlVar = (bookingID,)
                 cur.execute(sql, sqlVar)
-                print(sql, sqlVar)
                 conn.commit()
-
                 cur.close()
                 conn.close()
-
             except mariadb.Error as e:
                 print(f"Error: {e}")
 
@@ -761,22 +705,20 @@ def viewbooking():
 #Facility Management
 @app.route('/facilitymanagement', methods=['post','get'])
 def newFacility():
-    if not g.user:
-        return redirect('/SFMS/login')
+    #Check for admin member type
     if g.user.userType != "admin":
         return redirect('/SFMS/')
 
     facilities = []
+    resourceName = []
+    status = []
 
+    #Retrieve facilities in system
     try:
         #Connect to DB
         conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
         cur = conn.cursor()
-
-        #Create SQL Query
         sql = "SELECT facilityName FROM Facility"
-
-        #Run SQL Query
         cur.execute(sql,)
         result = cur.fetchall()
         cur.close()
@@ -788,11 +730,9 @@ def newFacility():
     except mariadb.Error as e:
         print(f"Error: {e}")
 
-    resourceName = []
-    status = []
-    #Retrieve POST Request Data
     if (request.method == 'POST'): 
 
+        #Add new facility to system
         if 'addFacility' in request.form:
             facilityName = request.form.get('facilityName')
             resourceName.append(request.form.get('r1'))
@@ -801,122 +741,79 @@ def newFacility():
             status.append(request.form.get('status2'))
             sessionLength = request.form.get('session')
             gracePeriod = request.form.get('grace')
-
             sessionTimes, sTimes, dates = generateSessions(sessionLength,gracePeriod, dateToday)
 
             if (len(facilityName.split()) == 1):
                 facilityName = facilityName.rstrip() + " Facility"
 
             try:
-                #Connect to DB
                 conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
                 cur = conn.cursor()
-
-                #Create SQL Query
                 sql = "INSERT INTO Facility (facilityName, sessionLength, gracePeriod) VALUES (%s, %s, %s)"
                 sqlVar = (facilityName, sessionLength, gracePeriod)
-
-                #Run SQL Query
                 cur.execute(sql, sqlVar)
                 conn.commit()
-
-                #Create SQL Query
                 sql = "SELECT MAX(facilityID) FROM Facility"
-
-                #Run SQL Query
                 cur.execute(sql,)
                 result = cur.fetchone()
-
                 facilityID = result[0]
 
                 for i in range(0, len(resourceName)):
                     resourceNum = i+1
-                    #Create SQL Query
                     sql = "INSERT INTO Resources (resourceName, resourceNumber, facilityID, status) VALUES (%s, %s, %s, %s)"
                     sqlVar = (resourceName[i], resourceNum, facilityID, status[i])
-
-                    #Run SQL Query
                     cur.execute(sql, sqlVar)
                     conn.commit()
-
                     tableVar = facilityName.split(" ")
                     tablename = tableVar[0][0] + tableVar[1][0] + "R" + str(resourceNum)
-
-                    sql = "DROP TABLE IF EXISTS {}".format(tablename)
-                    
-                    #Run SQL Query
+                    sql = "DROP TABLE IF EXISTS {}".format(tablename)                    
                     cur.execute(sql,)
                     conn.commit()
-
                     sql = "CREATE TABLE {} (slotID int(11) AUTO_INCREMENT NOT NULL PRIMARY KEY, sessionRange varchar(255) NOT NULL, startTime time NOT NULL, bookingID int(11), status varchar(10) NOT NULL DEFAULT 'free', date date NOT NULL)".format(tablename)
-                    
-                    #Run SQL Query
                     cur.execute(sql, )
                     conn.commit()
 
                     for i in dates:
-
                         for j in sessionTimes:
                             sql = "INSERT INTO {} (sessionRange, startTime, date) VALUES (%s, %s, %s)".format(tablename)
                             sqlVar = (j, sTimes[sessionTimes.index(j)], i)
-
-                            #Run SQL Query
                             cur.execute(sql,sqlVar)
                             conn.commit()
 
                 cur.close()
                 conn.close()
-
             except mariadb.Error as e:
                 print(f"Error: {e}")
 
             flash('New facility, {} created'.format(facilityName))
             return redirect('/SFMS/facilitymanagement')
 
+        #Remove facility from system
         if 'remove' in request.form:
             facilityName = request.form.get('facilityName')
-
             tableVar = facilityName.split(" ")
-
             try:
-                #Connect to DB
                 conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
                 cur = conn.cursor()
-
-                #Create SQL Query
                 sql = "DELETE FROM Resources WHERE facilityID = (SELECT facilityID from Facility WHERE facilityName = %s)"
                 sqlVar = (facilityName,)
-
-                #Run SQL Query
                 cur.execute(sql, sqlVar)
                 conn.commit()
-
-                #Create SQL Query
                 sql = "DELETE FROM Booking WHERE facilityID = (SELECT facilityID from Facility WHERE facilityName = %s)"
                 sqlVar = (facilityName,)
-
-                #Run SQL Query
                 cur.execute(sql, sqlVar)
                 conn.commit()
 
                 for i in range(1,3):
-                    tablename = tableVar[0][0] + tableVar[1][0] + "R" + str(i)
-                
-                    #Create SQL Query
+                    tablename = tableVar[0][0] + tableVar[1][0] + "R" + str(i)                
                     sql = "DROP TABLE {}".format(tablename)
-
-                    #Run SQL Query
                     cur.execute(sql,)
                     conn.commit()
 
-                #Create SQL Query
                 sql = "DELETE FROM Facility WHERE facilityName = %s"
                 sqlVar = (facilityName,)
-
-                #Run SQL Query
                 cur.execute(sql, sqlVar)
                 conn.commit()
-
                 cur.close()
                 conn.close()
 
@@ -930,8 +827,6 @@ def newFacility():
 #Resource Management
 @app.route('/resourcemanagement', methods=['post','get'])
 def manageResources():
-    if not g.user:
-        return redirect('/SFMS/login')
     if g.user.userType != "admin":
         return redirect('/SFMS/')
 
@@ -943,6 +838,7 @@ def manageResources():
 
     if (request.method == 'POST'):
 
+        #Manage resources based on chosen facility
         if "manage" in request.form:
             facilityName = request.form.get('facilityName')
             resources = []
@@ -953,12 +849,8 @@ def manageResources():
                 #Connect to DB
                 conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
                 cur = conn.cursor()
-
-                #Create SQL Query
                 sql = "SELECT resourceName, resourceNumber, status FROM Resources WHERE facilityID = (SELECT facilityID FROM Facility WHERE facilityName = %s)"
                 sqlVar = (facilityName,)
-
-                #Run SQL Query
                 cur.execute(sql, sqlVar)
                 result = cur.fetchall()
                 cur.close()
@@ -969,10 +861,10 @@ def manageResources():
                     resourceNum.append(result[i][1])
                     status.append(result[i][2])
 
-                
             except mariadb.Error as e:
                 print(f"Error: {e}")
         
+        #Update resource status
         if "updateStatus" in request.form:
             facilityName = request.form.get('facilityName')
             resourceNum = request.form.get('resourceNum')
@@ -982,12 +874,8 @@ def manageResources():
                 #Connect to DB
                 conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
                 cur = conn.cursor()
-
-                #Create SQL Query
                 sql = "UPDATE Resources SET status = %s WHERE (facilityID = (SELECT facilityID FROM Facility WHERE facilityName = %s)) AND (resourceNumber = %s)"
                 sqlVar = (status, facilityName, resourceNum)
-
-                #Run SQL Query
                 cur.execute(sql, sqlVar)
                 conn.commit()
                 cur.close()
@@ -999,6 +887,7 @@ def manageResources():
             flash('{}, Resource {} status updated'.format(facilityName, resourceNum))
             return redirect('/SFMS/facilitymanagement')
 
+        #Rename a resource
         if "rename" in request.form:
             facilityName = request.form.get('facilityName')
             resourceNum = request.form.get('resourceNum')
@@ -1008,12 +897,8 @@ def manageResources():
                 #Connect to DB
                 conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
                 cur = conn.cursor()
-
-                #Create SQL Query
                 sql = "UPDATE Resources SET resourceName = %s WHERE (facilityID = (SELECT facilityID FROM Facility WHERE facilityName = %s)) AND (resourceNumber = %s)"
                 sqlVar = (newresourceName, facilityName, resourceNum)
-
-                #Run SQL Query
                 cur.execute(sql, sqlVar)
                 conn.commit()
                 cur.close()
@@ -1030,8 +915,6 @@ def manageResources():
 #User Management
 @app.route('/usermanagement', methods=['post','get'])
 def newUser():
-    if not g.user:
-        return redirect('/SFMS/login')
     if g.user.userType != "admin":
         return redirect('/SFMS/')
 
@@ -1043,14 +926,9 @@ def newUser():
     usernames2 = []
 
     try:
-        #Connect to DB
         conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
         cur = conn.cursor()
-
-        #Create SQL Query
         sql = "SELECT firstName, lastName, username FROM SFMSUser WHERE userType != 'SYSTEM' AND status = 'active' AND userID != '2'"
-
-        #Run SQL Query
         cur.execute(sql,)
         result = cur.fetchall()
 
@@ -1059,10 +937,7 @@ def newUser():
             lname.append(result[i][1])
             usernames.append(result[i][2])
 
-        #Create SQL Query
         sql = "SELECT firstName, lastName, username FROM SFMSUser WHERE userType != 'SYSTEM' AND status = 'inactive' AND userID != '2'"
-
-        #Run SQL Query
         cur.execute(sql,)
         result = cur.fetchall()
         cur.close()
@@ -1079,6 +954,7 @@ def newUser():
     #Retrieve POST Request Data
     if (request.method == 'POST'): 
         
+        #Add a user to the system
         if "adduser" in request.form:
 
             firstname = request.form.get('firstname')
@@ -1092,15 +968,10 @@ def newUser():
             hashedPassword = hashlib.sha256(password.encode('utf-8')).hexdigest()
 
             try:
-                #Connect to DB
                 conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
                 cur = conn.cursor()
-
-                #Create SQL Query
                 sql = "INSERT INTO SFMSUser (firstName, lastName, username, userType, userAddress, email, telephone, sesame, status) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)"
                 sqlVar = (firstname, lastname, username, usertype, useraddress, useremail, telephone, hashedPassword, "active")
-
-                #Run SQL Query
                 cur.execute(sql, sqlVar)
                 conn.commit()
                 cur.close()
@@ -1116,141 +987,94 @@ def newUser():
             flash('New user {} {} created'.format(firstname, lastname))
             return redirect('/SFMS/usermanagement')
 
+        #Deaactuvate a user
         if "deactivate" in request.form:
-
             username = request.form.get('username')
-
-
             try:
-                #Connect to DB
                 conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
                 cur = conn.cursor()
-
-                #Create SQL Query
                 sql = "SELECT firstName, lastName FROM SFMSUser WHERE username = %s"
                 sqlVar = (username,)
-
-                #Run SQL Query
                 cur.execute(sql, sqlVar)
                 result = cur.fetchone()
                 firstname = result[0]
                 lastname = result[1]
-
-                #Create SQL Query
                 sql = "UPDATE SFMSUser SET status = %s WHERE username = %s"
                 sqlVar = ("inactive",username)
-
-                #Run SQL Query
                 cur.execute(sql, sqlVar)
                 conn.commit()
-
                 sql = "UPDATE Cards SET userID = 1 WHERE userID = (SELECT userID FROM SFMSUser WHERE username = %s)"
                 sqlVar = (username,)
-
-                #Run SQL Query
                 cur.execute(sql, sqlVar)
                 conn.commit()
                 cur.close()
                 conn.close()
-
             except mariadb.Error as e:
                 print(f"Error: {e}")
 
             flash('User {} {} deactivated'.format(firstname, lastname))
             return redirect('/SFMS/usermanagement')
 
+        #Remove a user from system
         if "remove" in request.form:
-
             username = request.form.get('username')
-
             try:
-                #Connect to DB
                 conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
                 cur = conn.cursor()
-
-                #Create SQL Query
                 sql = "SELECT firstName, lastName FROM SFMSUser WHERE username = %s"
                 sqlVar = (username,)
-
-                #Run SQL Query
                 cur.execute(sql, sqlVar)
                 result = cur.fetchone()
                 firstname = result[0]
                 lastname = result[1]
-
-                #Create SQL Query
                 sql = "DELETE FROM SFMSUser WHERE username = %s"
                 sqlVar = (username,)
-
-                #Run SQL Query
                 cur.execute(sql, sqlVar)
                 conn.commit()
-
                 sql = "UPDATE Cards SET userID = 1 WHERE userID = (SELECT userID FROM SFMSUser WHERE username = %s)"
                 sqlVar = (username,)
-
-                #Run SQL Query
                 cur.execute(sql, sqlVar)
                 conn.commit()
                 cur.close()
                 conn.close()
-
             except mariadb.Error as e:
                 print(f"Error: {e}")
 
             flash('User {} {} removed'.format(firstname, lastname))
             return redirect('/SFMS/usermanagement')
 
+        #Activate a user
         if "activate" in request.form:
-
             username = request.form.get('username')
-
             try:
-                #Connect to DB
                 conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
                 cur = conn.cursor()
-
-                #Create SQL Query
                 sql = "SELECT firstName, lastName FROM SFMSUser WHERE username = %s"
                 sqlVar = (username,)
-
-                #Run SQL Query
                 cur.execute(sql, sqlVar)
                 result = cur.fetchone()
                 firstname = result[0]
                 lastname = result[1]
-
-                #Create SQL Query
                 sql = "UPDATE SFMSUser SET status = %s WHERE username = %s"
                 sqlVar = ("active",username)
-
-                #Run SQL Query
                 cur.execute(sql, sqlVar)
                 conn.commit()
-
                 cur.close()
                 conn.close()
-
             except mariadb.Error as e:
                 print(f"Error: {e}")
 
             flash('User {} {} activated'.format(firstname, lastname))
             return redirect('/SFMS/usermanagement')
 
-
     return render_template("manageUser.html", firstname = fname, lastname = lname, username = usernames, firstname2 = fname2, lastname2 = lname2, username2 = usernames2)
 
 #Assign RFID Card to Member
 @app.route('/cardmanagement', methods = ['post', 'get'])
 def assign():
-
-    #Check if a user is logged in
-    if not g.user:
-        return redirect('/SFMS/login')
-
-    #Check if logged in user is Admin
     if g.user.userType != "admin":
         return redirect('/SFMS/')
+
     users = []
     usernames = []
     userids = []
@@ -1258,53 +1082,28 @@ def assign():
     usedcards = []
 
     try:
-
-        #Connect to DB
         conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
         cur = conn.cursor()
-
-
-        #Select all users
         sql = "SELECT username FROM SFMSUser"
-
-        #Run SQL Query
         cur.execute(sql,)
         result = cur.fetchall()
-
-        #Add all usernames in database to list
         for i in range(0,len(result)):
             users.append(result[i][0])
-
-        #Select Unassigned Cards
         sql = "SELECT cardID FROM Cards WHERE userID = 1"
-
-        #Run SQL Query
         cur.execute(sql,)
         result = cur.fetchall()
-
-        #Add all unassigned cards to list
         for i in range(0,len(result)):
             newcards.append(result[i][0])
-
-        #Select all assigned Cards
         sql = "SELECT cardID, userID FROM Cards WHERE userID != 1"
-
-        #Run SQL Query
         cur.execute(sql,)
         result = cur.fetchall()
-
-        #Add all assigned cards to list
         for i in range(0,len(result)):
             usedcards.append(result[i][0])
             userids.append(result[i][1])
 
         for i in userids:
-            #Select all assigned Cards
             sql = "SELECT username FROM SFMSUser WHERE userID = %s"
             sqlVar = (i,)
-            print(sql, sqlVar)
-
-            #Run SQL Query
             cur.execute(sql,sqlVar)
             result = cur.fetchone()
             usernames.append(result[0])
@@ -1314,24 +1113,17 @@ def assign():
     except mariadb.Error as e:
         print(f"Error: {e}")
 
-    #Check for POST request from webpage
     if(request.method =='POST'):
 
-        #If admin wants to assign an unused card to a user
+        #Assign a new card to a user
         if 'assignNew' in request.form:
-
             username = request.form.get('username')
             chosenRFID = request.form.get('newcards')
             try:
-                #Connect to DB
                 conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
                 cur = conn.cursor()
-
-                #Change the user associated with an RFID card to the user selected on the webpage
                 sql = "UPDATE Cards SET userID = (SELECT userID FROM SFMSUser WHERE username = %s) WHERE cardID = %s"
                 sqlVar = (username, chosenRFID)
-
-                #Run SQL Query
                 cur.execute(sql, sqlVar)
                 conn.commit()
                 cur.close()
@@ -1343,36 +1135,26 @@ def assign():
             flash('Card {} assigned to {}'.format(chosenRFID, username))
             return redirect('/SFMS/cardmanagement')
 
-        #If admin wants to a reassign a card from one user to another
+        #Reassign a card from one user to another
         if 'reassign' in request.form:
-
             username = request.form.get('username')
             chosenRFID = request.form.get('usedcards')
             try:
-                #Connect to DB
                 conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
                 cur = conn.cursor()
-
                 sql = "SELECT cardID FROM Cards WHERE userID = (SELECT userID FROM SFMSUser WHERE username = %s)"
                 sqlVar = (username,)
-
-                #Run SQL Query
                 cur.execute(sql, sqlVar)
                 result = cur.fetchall()
 
                 if result:
                     sql = "UPDATE Cards SET userID = '1' WHERE cardID = %s"
                     sqlVar = (result[0][0],)
-                    print(sql,sqlVar)
-
-                    #Run SQL Query
                     cur.execute(sql, sqlVar)
                     conn.commit()
 
                 sql = "UPDATE Cards SET userID = (SELECT userID FROM SFMSUser WHERE username = %s) WHERE cardID = %s"
                 sqlVar = (username, chosenRFID)
-
-                #Run SQL Query
                 cur.execute(sql, sqlVar)
                 conn.commit()
                 cur.close()
@@ -1384,19 +1166,14 @@ def assign():
             flash('Card {} successfully reassigned to {}'.format(chosenRFID, username))
             return redirect('/SFMS/cardmanagement')
 
-        #If admin wants to add new card to system
+        #Add new card to system
         if 'addNew' in request.form:
             rfid = request.form.get('addcard')
             try:
-                #Connect to DB
                 conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
                 cur = conn.cursor()
-
-                #Change the user associated with an RFID card to the user selected on the webpage
                 sql = "INSERT INTO Cards (userID, cardID) VALUES (%s, %s)"
                 sqlVar = ("1",rfid)
-
-                #Run SQL Query
                 cur.execute(sql, sqlVar)
                 conn.commit()
                 cur.close()
@@ -1408,23 +1185,18 @@ def assign():
             flash('New Card {} successfully added'.format(rfid))
             return redirect('/SFMS/cardmanagement')
 
+        #Delete a card from a system
         if 'delete' in request.form:
             rfid = request.form.get('deleteCard')
             try:
-                #Connect to DB
                 conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
                 cur = conn.cursor()
-
-                #Change the user associated with an RFID card to the user selected on the webpage
                 sql = "DELETE FROM Cards WHERE cardID = %s"
                 sqlVar = (rfid,)
-
-                #Run SQL Query
                 cur.execute(sql, sqlVar)
                 conn.commit()
                 cur.close()
                 conn.close()
-
             except mariadb.Error as e:
                 print(f"Error: {e}")
 
@@ -1436,12 +1208,8 @@ def assign():
 #System Logs
 @app.route('/systemlogs', methods=['post','get'])
 def systemlogs():
-    if not g.user:
-        return redirect('/SFMS/login')
     if g.user.userType != "admin":
         return redirect('/SFMS/')
-
-    
 
     firstName = []
     lastName = []
@@ -1454,28 +1222,18 @@ def systemlogs():
     userids = []
     rfid = []
     urfid = []
-    dateString1 = dateToday + " 00:00:00"
-    dateString2 = dateToday + " 23:59:59"
-    weekString = lastWeekString + " 00:00:00"
-    monthString = lastMonthString + " 00:00:00"
 
     if(request.method == 'POST'):
         date1 = request.form.get('date1') + " 00:00:00"
         now2 = datetime.datetime.now()
         nowString2 = now2.strftime("%Y-%m-%d %H:%M:%S")
 
+        #Retrieve logs of known and unknown card access attempts between chosen date and now
         try:
-            #Connect to DB
             conn = mariadb.connect(user="webclient", password="wc_boss5", host="localhost", database="SFM")
             cur = conn.cursor()
-
-            
             sql = "SELECT facilityID, rfid, reading_time FROM KnownCards WHERE reading_time BETWEEN %s AND %s"
             sqlVar = (date1, nowString2)
-            print(sql,sqlVar)
-
-
-            #Run SQL Query
             cur.execute(sql,sqlVar)
             result = cur.fetchall()
 
@@ -1485,45 +1243,31 @@ def systemlogs():
                 readingTime.append(result[i][2])
 
             for i in range(0,len(rfid)):
-
                 sql = "SELECT userID FROM Cards WHERE cardID = %s"
                 sqlVar = (rfid[i],)
-
-                #Run SQL Query
                 cur.execute(sql,sqlVar)
                 result = cur.fetchone()
                 userids.append(result[0])
 
             for i in range(0,len(userids)):
-
                 sql = "SELECT firstName, lastName FROM SFMSUser WHERE userID = %s"
                 sqlVar = (userids[i],)
-
-                #Run SQL Query
                 cur.execute(sql,sqlVar)
                 result = cur.fetchall()
-
                 for j in range(0,len(result)):
                     firstName.append(result[j][0])
                     lastName.append(result[j][1])
 
             for i in range(0, len(facilityID)):
-
                 sql = "SELECT facilityName FROM Facility WHERE facilityID = %s"
                 sqlVar = (facilityID[i],)
-
-                #Run SQL Query
                 cur.execute(sql,sqlVar)
                 result = cur.fetchall()
-
                 for j in range(0,len(result)):
                     facilityName.append(result[j][0])
 
             sql = "SELECT facilityID, rfid, reading_time FROM UnknownCards WHERE reading_time BETWEEN %s AND %s"
             sqlVar = (date1, nowString2)
-            print(sql,sqlVar)
-
-            #Run SQL Query
             cur.execute(sql,sqlVar)
             result = cur.fetchall()
 
@@ -1536,17 +1280,13 @@ def systemlogs():
 
                 sql = "SELECT facilityName FROM Facility WHERE facilityID = %s"
                 sqlVar = (ufacilityID[i],)
-
-                #Run SQL Query
                 cur.execute(sql,sqlVar)
                 result = cur.fetchall()
-
                 for j in range(0,len(result)):
                     ufacilityName.append(result[j][0])
 
             cur.close()
             conn.close()
-
         except mariadb.Error as e:
             print(f"Error: {e}")
 
@@ -1555,8 +1295,8 @@ def systemlogs():
 #Verify Booking
 @app.route('/verify', methods=['post', 'get'])
 def verifyBooking():
+    updateBookingStatuses()
     message = ""
-
     today = datetime.date.today().strftime("%Y-%m-%d")
     now = datetime.datetime.today().time()
 
@@ -1579,34 +1319,28 @@ def verifyBooking():
 	        #Connect to DB
             conn = mariadb.connect(user="esp32", password="esp_boss5", host="localhost", database="SFM")
             cur = conn.cursor()
-
             sql = "SELECT * FROM Cards WHERE cardID = %s"
             sqlVar = (rfid,)
-
             cur.execute(sql, sqlVar)
             result = cur.fetchone()
 
+            #Create SQL Query to log a facility access attempt with unknown card
             if result == None:
-                #Create SQL Query to log a facility access attempt
                 sql = "INSERT INTO UnknownCards (sensor, facilityID, rfid) VALUES (%s, %s, %s)"
                 sqlVar = (name, facility, rfid)
                 cur.execute(sql, sqlVar)
                 conn.commit()
 
+            #Create SQL Query to log a facility access attempt with known card
             else:
-
-                #Create SQL Query to log a facility access attempt
                 sql = "INSERT INTO KnownCards (sensor, facilityID, rfid) VALUES (%s, %s, %s)"
                 sqlVar = (name, facility, rfid)
                 cur.execute(sql, sqlVar)
                 conn.commit()
-
-                #Create SQL Query to check for a booking
                 sql = "SELECT bookingID, resourceNumber, useStart, useEnd FROM Booking WHERE userID = (SELECT userID FROM Cards WHERE cardID = %s) AND useDate = %s AND facilityID = %s AND status = 'Upcoming'"
                 sqlVar = (rfid, today, facility)
                 cur.execute(sql, sqlVar)
                 result = cur.fetchall()
-                print(result)
 
                 if not result:
                     message = "0,N"
@@ -1615,13 +1349,10 @@ def verifyBooking():
                 bookingID = result[0][0]
                 startVar = result[-1][2]
                 endVar = result[-1][3]
-
                 nowVar = datetime.datetime.now().strftime("%H:%M:%S")
                 start = str(startVar)
                 end = str(endVar)
-
                 resource = result[-1][1]
-
                 timeVar = timeLeft(nowVar, end)
 
                 if (datetime.datetime.strptime(start, "%H:%M:%S").time() <= now) and (now <= datetime.datetime.strptime(end, "%H:%M:%S").time()):
@@ -1629,7 +1360,6 @@ def verifyBooking():
                     sqlVar = (bookingID,)
                     cur.execute(sql, sqlVar)
                     conn.commit()
-
                     cur.close()
                     conn.close()
                     message = "1," + str(resource) + "," + str(timeVar)
@@ -1639,7 +1369,6 @@ def verifyBooking():
         except mariadb.Error as e:
             print(f"Error: {e}")
     return message, 200
-
 
 #Run Server
 if __name__ == "__main__":

@@ -19,8 +19,11 @@ body
   background-attachment:fixed ;
   background-repeat: no-repeat;
   background-size: cover;
-  color: white;
+  color: black;
+  line-height: 25px;
+  text-decoration: none;
 }
+
 .title{
 
   font-size: large;

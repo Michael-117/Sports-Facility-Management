@@ -1,6 +1,4 @@
 from flask import Flask 
-from flask import app
-from flask import current_app
 from flask import g
 
 from flask_mail import Mail, Message

@@ -15,8 +15,8 @@
 #define relay2 32               //Relay #2
 
 //Wi-Fi Setup Constants
-const char* ssid = "PearFi";
-const char* password = "P3arsonHousehold";
+const char* ssid = "SSID";
+const char* password = "PASSWORD";
 const char* serverName = "http://192.168.0.4/SFMS/verify";
 
 //POST Request Information
